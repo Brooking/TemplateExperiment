@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Looping Template</title>
+    <style>
+        div.templateContents {
+            border-style: solid;
+            border-width: thin;
+            border-color: blue;
+        }
+        div.templateContents::before {
+            content: "This is what is in the template";
+            color: blue;
+        }
+        div.targetDiv {
+            border-style: solid;
+            border-width: thick;
+            border-color: red;
+        }
+        div.targetContentsDiv {
+            border-style: solid;
+            border-width: thin;
+            border-color: red;
+        }
+        ul.table {
+          color: blue;
+        }
+        li.tableItem {
+          color: aqua;
+        }
+        li.redTableItem {
+          color: crimson;
+        }
+    </style>
+    <script type="text/javascript" src="TemplatePolyfill.js"></script>
+    <script>
+        function onLoad() {
+            document.querySelector("#templateContents").innerText =
+                document.querySelector("#tableTemplate").innerHTML;
+        }
+
+        function buttonClick() {
+            let newSpan = document.createElement("span");
+            newSpan.innerText = " - new span -";
+
+            // instantiate the template
+            let template = document.querySelector('#theTemplate');
+            let templateFragment = HTMLTemplateElement_instantiate(
+                document.querySelector('#tableTemplate'),
+                null, /*partProcessor override*/
+                {
+                    tableClass: 'table',
+                    items: [
+                      {class: 'tableItem', value: 12, label: 'twelve'},
+                      {class: 'redTableItem', value: 15, label: 'fifteen'},
+                      {class: 'tableItem', value: 17, label: 'seventeen'}
+                    ]
+                }
+            );
+
+            // insert the template instance
+            let destination = document.querySelector('#target');
+            let documentFragment = templateFragment.documentFragment;
+            destination.appendChild(documentFragment);
+
+            // disable the button
+            document.querySelector('#button').disabled = true;
+
+            // Copy the HTML into the decoding window
+            document.querySelector("#targetContents").innerText =
+                document.querySelector("#target").innerHTML;
+        }
+    </script>
+</head>
+<body onload="onLoad()">
+    <template id="tableTemplate">
+        <ul class="{{tableClass}}">Table:
+          <template processor="for-each" items={{items}}>
+              <li class="{{class}}" data-value="{{value}}">{{label}}</div>
+          </template>
+        </ul>
+    </template>
+    <div id="templateContents" class="templateContents"></div>
+    <button id="button" onclick="buttonClick()">Use Template</button>
+    <div id="target" class="targetDiv"></div>
+    <div id="targetContents" class="targetContentsDiv"></div>
+</body>
+</html>
