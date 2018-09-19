@@ -1,0 +1,121 @@
+#container {
+  display: inline-block;
+  margin: 10vh 20vw;
+  padding: 1vw;
+  border:1px solid #bbb;
+  width: 40vw;
+  align-content: center;
+}
+
+.navBar {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  border:1px solid #bbb;
+}
+
+.navBar td {
+  background-color: #7ADD00;
+  vertical-align: middle;
+}
+
+.navBar a {
+  display: block;
+  text-align: center;
+  padding: 1vh 1vw;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+h1 {
+  text-align: center;
+}
+
+.navBar li.active {
+  background-color: #1982E0;
+}
+
+table {
+  width: 40vw;
+  border-collapse: collapse;
+}
+
+td {
+  border:1px solid #bbb;
+  background-color: #8DF70B;
+  padding: 0;
+  vertical-align: top;
+  width: 6vw;
+}
+
+.navTasks {
+  list-style-type: none;
+  display: block;
+  margin: 1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100px;
+}
+
+.navTasks li {
+  padding: 1px 5px;
+  border:0px;
+}
+
+.tasks {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.tasks li {
+  border:1px solid #bbb;
+  padding: 4px;
+  margin: 4px;
+  background-color: #4697DF;
+}
+
+.tasks li div{
+  border-top: 1px solid #fff;
+  padding: 5px;
+  text-align: center;
+}
+
+.tasks textarea {
+  resize: none;
+  width: 100%;
+}
+
+.row {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  text-align: center;
+}
+
+.row li {
+  border: 0 solid #bbb;
+}
+
+.row li input{
+  width: 95%;
+}
+
+.taskTime, .taskAdd {
+  float: left;
+  width: 20%;
+}
+
+.tasks li.taskTitle {
+  border-left: 1px solid #fff;
+  border-right: 1px solid #fff;
+  float: left;
+  width: 60%;
+}
+
+.taskEditm .taskDelete {
+  float: left;
+  width: 10%;
+}
