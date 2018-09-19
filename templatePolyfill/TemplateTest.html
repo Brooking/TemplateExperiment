@@ -47,7 +47,7 @@
 
             // instantiate the template
             let template = document.querySelector('#theTemplate');
-            let templateFragment = HTMLTemplateElement_instantiate(
+            let templateInstance = HTMLTemplateElement_instantiate(
                 document.querySelector('#tableTemplate'),
                 null, /*partProcessor override*/
                 {
@@ -62,7 +62,7 @@
 
             // insert the template instance
             let destination = document.querySelector('#target');
-            let documentFragment = templateFragment.documentFragment;
+            let documentFragment = templateInstance.documentFragment;
             destination.appendChild(documentFragment);
 
             // disable the button
