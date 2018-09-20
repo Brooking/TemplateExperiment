@@ -1,4 +1,4 @@
-import { load } from './data.js';
+import { load } from '../res/data.js';
 
 var data = load();
 data.forEach(day => reorder(day.date));
@@ -50,6 +50,24 @@ function reorder(date) {
       Date.parse('01 Jan 1970 ' + t1.time + ':00 GMT') -
       Date.parse('01 Jan 1970 ' + t2.time + ':00 GMT')
   );
+  checkConflicts(date);
+}
+
+function checkConflicts(date) {
+  data.filter(day => date ? day.date == date : true)
+    .map(day => day.tasks.map(
+      (task, index, tasks) => {
+        if (tasks[index + 1])
+          task.conflict = tasks[index + 1].time == task.time
+        if (!task.conflict && tasks[index - 1])
+          task.conflict = tasks[index - 1].time == task.time
+      }))
+
+  data.filter(day => date ? day.date == date : true)
+    .map(day => day.conflict = day.tasks.reduce(
+      (conflict, task) => conflict
+        || task.conflict
+      , false /*No conflict as initial state*/))
 }
 
 export function setCurrentDay([index]) {

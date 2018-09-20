@@ -65,6 +65,9 @@ function NavBar(data) {
     navDay.querySelector('a').setAttribute("onclick",
       'Notify("setCurrentDay", ' + i + ');'
     );
+
+    if (day.conflict) navDay.querySelector('td').setAttribute("class", "conflict");
+
     navHead.append(navDay);
 
     // Tasks preview
@@ -75,6 +78,9 @@ function NavBar(data) {
       taskItem.querySelector('li').append(task.title);
       navDayUL.append(taskItem);
     });
+
+    if (day.conflict) taskList.querySelector('td').setAttribute("class", "conflict");
+
     navBody.append(taskList);
   }
 
@@ -92,7 +98,10 @@ function NavBar(data) {
 function Task(task, index, list) {
   var taskItem = list.querySelector('#taskItem').content.cloneNode(true);
   var taskItemUL = taskItem.querySelector('ul');
-  taskItem.querySelector('li').id = "task" + index;
+  taskItem.querySelector('li').setAttribute("class", "task");
+
+  if (task.conflict) taskItem.querySelector('li').setAttribute("class", "conflict");
+
 
   // Time
   var taskProp = taskItem.querySelector('#taskProp').content.cloneNode(true);
@@ -176,12 +185,12 @@ function TaskInput(tabUL) {
   // Inputs for new task
   var taskItem = tabUL.querySelector('#taskItem').content.cloneNode(true);
   var taskItemUL = taskItem.querySelector('ul');
+  taskItem.querySelector('li').setAttribute("class", "task");
   // Time
   var taskProp = taskItem.querySelector('#taskProp').content.cloneNode(true);
   taskProp.querySelector('li').append(document.createElement("input"));
   taskProp.querySelector('li').setAttribute("class", "taskTime");
   taskProp.querySelector('input').setAttribute("type", "time");
-  taskProp.querySelector('input').value = "12:00";
   taskItemUL.append(taskProp);
   // Title
   taskProp = taskItem.querySelector('#taskProp').content.cloneNode(true);
