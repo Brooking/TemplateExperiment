@@ -1,11 +1,9 @@
-let ZERO_WIDTH_SPACE='&#x200B';
-
 // This will become HTMLTemplateElement.instantiate()
 function HTMLTemplateElement_instantiate(thisTemplateElement, partProcessor,
                                          params) {
   // instantiate the template
   let documentFragment = document.importNode(thisTemplateElement.content,
-    true/*deep*/);
+                                             true/*deep*/);
   let templateInstance = new TemplateInstance(documentFragment);
 
   // stamp the template instance
@@ -27,15 +25,11 @@ class TemplateInstance {
     this._foreachTemplates = [];
     parser.internalTemplateNodes.forEach(templateNode => {
       if (templateNode.getAttribute('processor') == 'for-each') {
-        let parent = templateNode.parentElement;
-        let templateRange = new Range();
-        templateRange.setStartBefore(templateNode);
-        templateRange.setEndAfter(templateNode);
-        templateRange.deleteContents();
-        let placeholder = new Text(ZERO_WIDTH_SPACE);
-        templateRange.insertNode(placeholder);
-        this._foreachTemplates.push({node: templateNode, range: templateRange,
-                                    placeholder: placeholder});
+        let placeholder = new Text("");
+        templateNode.parentElement.replaceChild(placeholder, templateNode);
+        this._foreachTemplates.push({templateNode: templateNode,
+                                     firstNode: null,
+                                     placeholder: placeholder});
       } else {
           window.alert("The only type of embedded template we know is 'for-each'");
       }
@@ -57,26 +51,34 @@ class TemplateInstance {
 
     // insert new template instances (rows)
     this._foreachTemplates.forEach(templateStruct => {
-      let templateNode = templateStruct.node;
-      let range = templateStruct.range;
+      let templateNode = templateStruct.templateNode;
+      let placeholder = templateStruct.placeholder;
       let itemsKey = templateNode.getAttribute('items');
       itemsKey = itemsKey.substring(2, itemsKey.length - 2);
       let items = params[itemsKey];
 
-      // walk them backwards because there is no range.append
-      for (let i = items.length; i > 0; i--) {
-        let item = items[i-1];
+      while (templateStruct.firstNode != null &&
+             templateStruct.firstNode != placeholder) {
+        let nodeToRemove = templateStruct.firstNode;
+        templateStruct.firstNode = templateStruct.firstNode.nextSibling;
+        nodeToRemove.parentElement.removeChild(nodeToRemove);
+      }
+
+      let startMarker = new Text("");
+      placeholder.parentElement.insertBefore(startMarker, placeholder);
+
+      for (const item of items) {
         let documentFragment = document.importNode(templateNode.content,
                                                    true/*deep*/);
         let newTemplateInstance = new TemplateInstance(documentFragment);
         newTemplateInstance.update(partProcessor, item);
-        range.insertNode(newTemplateInstance.documentFragment);
+        placeholder.parentElement.insertBefore(
+            newTemplateInstance.documentFragment,
+            placeholder);
       };
 
-      if (items.length != 0 && templateStruct.placeholder) {
-        templateStruct.placeholder.remove();
-        templateStruct.placeholder = null;
-      }
+      templateStruct.firstNode = startMarker.nextSibling;
+      startMarker.parentElement.removeChild(startMarker);
     })
   }
 
@@ -86,7 +88,7 @@ class TemplateInstance {
     }
   }
 
-  _adjustAttributes(changingPart, adjustment) {
+  adjustAttributes(changingPart, adjustment) {
     for (const part of this._partArray) {
       if (part != changingPart &&
         part.node == changingPart.node &&
@@ -98,15 +100,44 @@ class TemplateInstance {
       }
     }
   }
+
+  adjustText(changingPart, adjustment) {
+    for (const part of this._partArray) {
+        if (part != changingPart &&
+            part.node == changingPart.node &&
+            part.start >= changingPart.start) {
+                // this is a part to the right of the changing one, fix it up
+                part.start += adjustment;
+                part.end += adjustment;
+        }
+    }
+  }
+
+  adjustTextInNewNode(changingPart, newNode, adjustment) {
+      for (const part of this._partArray) {
+          if (part != changingPart &&
+              part.node == changingPart.node &&
+              part.start >= changingPart.start) {
+                  // this is a part to the right of the changing one, fix it up
+                  part.node = newNode;
+                  part.start += adjustment;
+                  part.end += adjustment;
+          }
+      }
+  }
 }
+
 
 //
 // TemplatePart base class
 //
 class TemplatePart {
-  constructor(templateInstance, expression) {
+  constructor(templateInstance, expression, node, start, end) {
     this._templateInstance = templateInstance;
     this._expression = expression;
+    this._node = node;
+    this._start = start;
+    this._end = end;
   }
 
   get expression() {
@@ -119,12 +150,9 @@ class TemplatePart {
 // AttributeTemplatePart class
 //
 class AttributeTemplatePart extends TemplatePart {
-  constructor(templateInstance, node, attributeName, expression, start, end) {
-    super(templateInstance, expression);
+  constructor(templateInstance, expression, node, attributeName, start, end) {
+    super(templateInstance, expression, node, start, end);
     this._attributeName = attributeName;
-    this._node = node;
-    this._start = start;
-    this._end = end;
   }
 
   get attribute() {
@@ -148,7 +176,7 @@ class AttributeTemplatePart extends TemplatePart {
     this._node.setAttribute(this._attributeName, rawAttributeValue);
     let adjustment = newPartValue.length - oldPartValue.length
     this._end += adjustment;
-    this._templateInstance._adjustAttributes(this, adjustment);
+    this._templateInstance.adjustAttributes(this, adjustment);
   }
 }
 
@@ -156,40 +184,63 @@ class AttributeTemplatePart extends TemplatePart {
 // NodeTemplatePart class
 //
 class NodeTemplatePart extends TemplatePart {
-  constructor(templateInstance, node, expression, start, end) {
-    super(templateInstance, expression);
-    this._range = new Range();
-    this._range.setStart(node, start);
-    this._range.setEnd(node, end);
+  constructor(templateInstance, expression, node, start, end) {
+    super(templateInstance, expression, node, start, end);
   }
 
-  // // get parent() {
-  // //   return this._range.startContainer.parent;
-  // // }
-
   replaceWith(newPartValue) {
-    if (newPartValue.length === 0) {
-      newPartValue = ZERO_WIDTH_SPACE;
-    }
-
     if (newPartValue !== undefined) {
-      let newNode = (newPartValue.length !== undefined) ?
-                    new Text(newPartValue) :
-                    newPartValue;
-      this._range.deleteContents();
-      let parent = this._range.startContainer;
-      if (parent.nodeType === Node.TEXT_NODE) {
-        parent = parent.parentElement;
+      let range = document.createRange();
+      range.setStart(this._node, this._start);
+      range.setEnd(this._node, this._end);
+
+      if (newPartValue.length !== undefined) {
+        // we were given a string
+        if (this._node.nodeType == Node.TEXT_NODE) {
+          // and we are inserting into a text node
+          this._node.textContent =
+              this._node.textContent.substring(0, this._start) +
+              newPartValue +
+              this._node.textContent.substring(this._end);
+
+          let oldLength = this._end - this._start;
+          let adjustment = newPartValue.length - oldLength;
+          this._end += adjustment;
+          this._templateInstance.adjustText(this, adjustment);
+        } else {
+          // and we are inserting into an element
+          range.deleteContents();
+          range.insertNode(new Text(newPartValue));
+          this._end = range.endOffset;
+        }
+      } else {
+        // we were given a node or a document fragment
+        if (this._node.nodeType == Node.TEXT_NODE) {
+          // and we are inserting into a text node
+          let rangeToRight = document.createRange();
+          rangeToRight.setStart(this._node, this._end);
+          rangeToRight.setEnd(this._node, this._node.textContent.length);
+
+          range.deleteContents();
+          range.insertNode(newPartValue);
+          this._node.parentElement.normalize();
+
+          if (!rangeToRight.collapsed) {
+            this._templateInstance.adjustTextInNewNode(
+                this,
+                rangeToRight.start.node,
+                0 - this._end);
+          }
+        } else {
+          // and we are inserting into an element node
+          range.deleteContents();
+          range.insertNode(newPartValue);
+          this._node.parentElement.normalize();
+        }
       }
-      this._range.insertNode(newNode);
-      if (parent == null) {
-        window.alert(this._range.startContainer);
-      }
-      parent.normalize();
     }
   }
 }
-
 
 //
 // PartParser class
@@ -250,8 +301,8 @@ class PartParser {
       let part = PartParser._findNextPart(attributeValue);
       while (part != null) {
         this._partArray.push(
-          new AttributeTemplatePart(this._templateInstance, elementNode,
-              attributeName, part.id, part.start, part.end));
+          new AttributeTemplatePart(this._templateInstance, part.id,
+            elementNode, attributeName, part.start, part.end));
         part = PartParser._findNextPart(attributeValue, part.end);
       }
     }
@@ -262,8 +313,8 @@ class PartParser {
     let part = PartParser._findNextPart(text);
     while (part != null) {
       this._partArray.push(
-        new NodeTemplatePart(this._templateInstance, textNode,
-            part.id, part.start, part.end));
+        new NodeTemplatePart(this._templateInstance, part.id, textNode,
+            part.start, part.end));
       part = PartParser._findNextPart(text, part.end);
     }
   }

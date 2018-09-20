@@ -1,11 +1,12 @@
 ﻿<!DOCTYPE html>
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
-    <meta charset="utf-8" />
-    <title>Looping Template</title>
-    <style>
-        div.templateContents {
+  <meta charset="utf-8" />
+  <title>Looping Template</title>
+  <style>
+    div.templateContents {
             border-style: solid;
             border-width: thin;
             border-color: blue;
@@ -27,6 +28,9 @@
         ul.table {
           color: blue;
         }
+        ul.redTable {
+          color: red;
+        }
         li.tableItem {
           color: aqua;
         }
@@ -34,57 +38,86 @@
           color: crimson;
         }
     </style>
-    <script type="text/javascript" src="TemplatePolyfill.js"></script>
-    <script>
-        function onLoad() {
-            document.querySelector("#templateContents").innerText =
-                document.querySelector("#tableTemplate").innerHTML;
+  <script type="text/javascript" src="TemplatePolyfill.js"></script>
+  <script>
+
+    function onLoad() {
+      document.querySelector("#templateContents").innerText =
+        document.querySelector("#tableTemplate").innerHTML;
+    }
+
+    var templateInstance;
+
+    function pasteClick() {
+      let newSpan = document.createElement("span");
+      newSpan.innerText = " - new span -";
+
+      // instantiate the template
+      let template = document.querySelector('#theTemplate');
+      templateInstance = HTMLTemplateElement_instantiate(
+        document.querySelector('#tableTemplate'),
+        null, /*partProcessor override*/
+        {
+          tableClass: 'table',
+          tablelabel: 'BLUE',
+          items: [
+            { class: 'tableItem', value: 12, label: 'twelve' },
+            { class: 'redTableItem', value: 15, label: 'fifteen' },
+            { class: 'tableItem', value: 17, label: 'seventeen' }
+          ]
         }
+      );
 
-        function buttonClick() {
-            let newSpan = document.createElement("span");
-            newSpan.innerText = " - new span -";
+      // insert the template instance
+      let destination = document.querySelector('#target');
+      let documentFragment = templateInstance.documentFragment;
+      destination.appendChild(documentFragment);
 
-            // instantiate the template
-            let template = document.querySelector('#theTemplate');
-            let templateInstance = HTMLTemplateElement_instantiate(
-                document.querySelector('#tableTemplate'),
-                null, /*partProcessor override*/
-                {
-                    tableClass: 'table',
-                    items: [
-                      {class: 'tableItem', value: 12, label: 'twelve'},
-                      {class: 'redTableItem', value: 15, label: 'fifteen'},
-                      {class: 'tableItem', value: 17, label: 'seventeen'}
-                    ]
-                }
-            );
+      // disable the button
+      document.querySelector('#pasteButton').disabled = true;
+      document.querySelector('#updateButton').disabled = false;
 
-            // insert the template instance
-            let destination = document.querySelector('#target');
-            let documentFragment = templateInstance.documentFragment;
-            destination.appendChild(documentFragment);
+      // Copy the HTML into the decoding window
+      document.querySelector("#targetContents").innerText =
+        document.querySelector("#target").innerHTML;
+    }
 
-            // disable the button
-            document.querySelector('#button').disabled = true;
-
-            // Copy the HTML into the decoding window
-            document.querySelector("#targetContents").innerText =
-                document.querySelector("#target").innerHTML;
+    function updateClick() {
+      templateInstance.update(
+        null, /*partProcessor override*/
+        {
+          tableClass: 'redTable',
+          tablelabel: 'RED',
+          items: [
+            { class: 'redTableItem', value: 5, label: 'five' },
+            { class: 'tableItem', value: 6, label: 'six' }
+          ]
         }
-    </script>
+      )
+
+      // disable the button
+      document.querySelector('#updateButton').disabled = true;
+
+      // Copy the HTML into the decoding window
+      document.querySelector("#targetContents").innerText =
+        document.querySelector("#target").innerHTML;
+    }
+  </script>
 </head>
+
 <body onload="onLoad()">
-    <template id="tableTemplate">
-        <ul class="{{tableClass}}">Table:
-          <template processor="for-each" items={{items}}>
-              <li class="{{class}}" data-value="{{value}}">{{label}}</div>
-          </template>
-        </ul>
-    </template>
-    <div id="templateContents" class="templateContents"></div>
-    <button id="button" onclick="buttonClick()">Use Template</button>
-    <div id="target" class="targetDiv"></div>
-    <div id="targetContents" class="targetContentsDiv"></div>
+  <template id="tableTemplate">
+    <ul class="{{tableClass}}">{{tablelabel}} Table:
+      <template processor="for-each" items={{items}}>
+        <li class="{{class}}" data-value="{{value}}">{{label}}</div>
+      </template>
+    </ul>
+  </template>
+  <div id="templateContents" class="templateContents"></div>
+  <button id="pasteButton" onclick="pasteClick()">Paste Template</button>
+  <button id="updateButton" disabled onclick="updateClick()">Update Template</button>
+  <div id="target" class="targetDiv"></div>
+  <div id="targetContents" class="targetContentsDiv"></div>
 </body>
+
 </html>
