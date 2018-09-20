@@ -1,84 +1,12 @@
-var loadData = function () { }; // Will be linked to data.js's load
+import controller from './controller.js';
+import { dayOfWeekShort, dayOfWeek } from '../res/helper.js';
 
-function dayOfWeekShort(num) {
-  switch (num) {
-    case 1:
-      return "MON"
-    case 2:
-      return "TUE"
-    case 3:
-      return "WED"
-    case 4:
-      return "THU"
-    case 5:
-      return "FRI"
-    case 6:
-      return "SAT"
-    case 0:
-      return "SUN"
-  }
-}
-
-function dayOfWeek(num) {
-  switch (num) {
-    case 1:
-      return "Monday"
-    case 2:
-      return "Tuesday"
-    case 3:
-      return "Wednesday"
-    case 4:
-      return "Thursday"
-    case 5:
-      return "Friday"
-    case 6:
-      return "Saturday"
-    case 0:
-      return "Sunday"
-  }
-}
+controller.prototype.dayShort = day => dayOfWeekShort(day.getDay());
+controller.prototype.dayWeek = day => dayOfWeek(day.getDay());
+controller.prototype.conflict = (conflict) => conflict ? "conflict" : "";
 
 angular.module('CalendarApp', [])
-  .controller('CalendarController', function () {
-    var calendar = this;
-    calendar.days = loadData();
-    calendar.days.map(day => day.tasks.map(task => task.time = new Date('1970-01-01T' + task.time + ':00')))
-
-    calendar.sort = () => calendar.days.map(day => day.tasks.sort((t1, t2) => t1.time - t2.time));
-    calendar.dayShort = day => dayOfWeekShort(day.getDay());
-    calendar.dayWeek = day => dayOfWeek(day.getDay());
-    calendar.setCurrent = day => calendar.currentDay = day;
-    calendar.edit = task => task.edit = true;
-    calendar.confirm = task => { task.edit = false; calendar.sort(); calendar.checkConflicts(); }
-    calendar.delete = task => calendar.currentDay.tasks = calendar.currentDay.tasks.filter(t => t != task);
-    calendar.conflict = (conflict) => conflict ? "conflict" : "";
-
-    calendar.add = () => {
-      calendar.currentDay.tasks.push(calendar.currentDay.newTask);
-      calendar.currentDay.newTask = {};
-      calendar.sort();
-      calendar.checkConflicts();
-    }
-
-    calendar.checkConflicts = () => {
-      calendar.days.map(day => day.tasks.map(
-        (task, index, tasks) => {
-          if (tasks[index + 1])
-            task.conflict = tasks[index + 1].time.getTime() == task.time.getTime()
-          if (!task.conflict && tasks[index - 1])
-            task.conflict = tasks[index - 1].time.getTime() == task.time.getTime()
-        }))
-
-      calendar.days.map(day => day.conflict = day.tasks.reduce(
-        (conflict, task) => conflict
-          || task.conflict
-        , false /*No conflict as initial state*/))
-
-    }
-
-    calendar.sort();
-    calendar.checkConflicts();
-  });
+  .controller('CalendarController', controller);
 
 // // Get Templates
 // var templates = document.querySelector('#templates').import;

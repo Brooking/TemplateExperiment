@@ -1,54 +1,12 @@
 import { notify, observe, flush } from './controller.js';
+import { dayOfWeekShort, dayOfWeek } from '../res/helper.js';
 
-Notify = notify;
-Observe = observe;
-Flush = flush;
-
-function dayOfWeekShort(num) {
-  switch (num) {
-    case 1:
-      return "MON"
-    case 2:
-      return "TUE"
-    case 3:
-      return "WED"
-    case 4:
-      return "THU"
-    case 5:
-      return "FRI"
-    case 6:
-      return "SAT"
-    case 0:
-      return "SUN"
-  }
-}
-
-function dayOfWeek(num) {
-  switch (num) {
-    case 1:
-      return "Monday"
-    case 2:
-      return "Tuesday"
-    case 3:
-      return "Wednesday"
-    case 4:
-      return "Thursday"
-    case 5:
-      return "Friday"
-    case 6:
-      return "Saturday"
-    case 0:
-      return "Sunday"
-  }
-}
-
-// Get Templates
-var templates = document.querySelector('#templates').import;
+Notify = notify; // Declared in index.html
 
 // Nav Bar creation
 function NavBar(data) {
 
-  var navBar = templates.querySelector('#weekdaysNavBar').content.cloneNode(true);
+  var navBar = document.querySelector('#weekdaysNavBar').content.cloneNode(true);
 
   // Populate Nav Bar
   var navHead = navBar.querySelector('thead');
@@ -228,7 +186,7 @@ function DayTab(day) {
 
   if (!day) return;
 
-  var tab = templates.querySelector('#dayTab').content.cloneNode(true);
+  var tab = document.querySelector('#dayTab').content.cloneNode(true);
 
   tab.querySelector('h1').append(dayOfWeek(day.date.getDay()));
 
@@ -243,7 +201,7 @@ function DayTab(day) {
   var container = document.querySelector('#container');
   for (let i = container.children.length - 1; i >= 0; i--) {
     const node = container.children[i];
-    if (node.tagName != "TABLE") node.parentElement.removeChild(node)
+    if (!(node.tagName == "TABLE" || node.tagName == "TEMPLATE")) node.parentElement.removeChild(node)
   }
   container.appendChild(tab);
 }
