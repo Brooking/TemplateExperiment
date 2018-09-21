@@ -22,12 +22,12 @@ export function load() {
       date: weekDates[0],
       tasks: [
         {
-          time: "09:00",
+          time: new Date('1970-01-01T09:00:00'),
           title: "Morning Hike",
           description: "Family hike to Tiger mountain"
         },
         {
-          time: "16:00",
+          time: new Date('1970-01-01T16:00:00'),
           title: "House Chores",
           description: "Clean the house and other stuff"
         }
@@ -37,17 +37,17 @@ export function load() {
       date: weekDates[1],
       tasks: [
         {
-          time: "09:30",
+          time: new Date('1970-01-01T09:30:00'),
           title: "Call ISP Technitian",
           description: "Call ISP service to replace faulty modem"
         },
         {
-          time: "11:30",
+          time: new Date('1970-01-01T11:30:00'),
           title: "Lunck Meeting",
           description: "Meet the team for a team lunch"
         },
         {
-          time: "16:00",
+          time: new Date('1970-01-01T16:00:00'),
           title: "1on1 w/Manager",
           description: "Go to manager's office for 1on1 meeting"
         }
@@ -57,12 +57,12 @@ export function load() {
       date: weekDates[2],
       tasks: [
         {
-          time: "10:00",
+          time: new Date('1970-01-01T10:00:00'),
           title: "Internal Tech Talk",
           description: "Senior developer is giving a talk on best coding practices"
         },
         {
-          time: "15:00",
+          time: new Date('1970-01-01T15:00:00'),
           title: "Org All Hands",
           description: "Org's All Hands meeting to recap on all accomplishments"
         }
@@ -72,17 +72,17 @@ export function load() {
       date: weekDates[3],
       tasks: [
         {
-          time: "11:00",
+          time: new Date('1970-01-01T11:00:00'),
           title: "Book Club Meeting",
           description: "Discuss this months book"
         },
         {
-          time: "11:00",
+          time: new Date('1970-01-01T11:00:00'),
           title: "Team Meeting",
           description: "Catch up with team's accomplishments"
         },
         {
-          time: "20:00",
+          time: new Date('1970-01-01T20:00:00'),
           title: "Marineers Game",
           description: "Don't miss the playoffs!"
         }
@@ -92,12 +92,12 @@ export function load() {
       date: weekDates[4],
       tasks: [
         {
-          time: "09:45",
+          time: new Date('1970-01-01T09:45:00'),
           title: "Satya's Q&A",
           description: "Satya shares customer momentum and our commitment to security."
         },
         {
-          time: "12:00",
+          time: new Date('1970-01-01T12:00:00'),
           title: "Lunch John",
           description: "Have lunck with John"
         }
@@ -107,12 +107,12 @@ export function load() {
       date: weekDates[5],
       tasks: [
         {
-          time: "09:00",
+          time: new Date('1970-01-01T09:00:00'),
           title: "Dry Cleaning",
           description: "Pick up suit from the dry cleaning"
         },
         {
-          time: "11:00",
+          time: new Date('1970-01-01T11:00:00'),
           title: "Microsoft 5k",
           description: "Sign up for the 5k run at the event"
         }
@@ -122,7 +122,7 @@ export function load() {
       date: weekDates[6],
       tasks: [
         {
-          time: "14:00",
+          time: new Date('1970-01-01T14:00:00'),
           title: "Family Reunion",
           description: "Meet up at folk's house with the rest of the family"
         }

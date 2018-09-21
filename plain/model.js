@@ -1,50 +1,31 @@
 import { load } from '../res/data.js';
 
 var data = load();
-data.forEach(day => reorder(day.date));
 var currentDay;
 
-function reorder(date) {
-  data.find(day => day.date == date).tasks.sort(
-    (t1, t2) =>
-      Date.parse('01 Jan 1970 ' + t1.time + ':00 GMT') -
-      Date.parse('01 Jan 1970 ' + t2.time + ':00 GMT')
-  );
-  checkConflicts(date);
+function reorder() {
+  data.map(day => day.tasks.sort((t1, t2) => t1.time - t2.time));
+}
+function checkConflicts() {
+  data.map(day => day.tasks.map(
+    (task, index, tasks) => {
+      if (tasks[index + 1])
+        task.conflict = tasks[index + 1].time.getTime() == task.time.getTime()
+      if (!task.conflict && tasks[index - 1])
+        task.conflict = tasks[index - 1].time.getTime() == task.time.getTime()
+    }))
+
+  data.map(day => day.conflict = day.tasks.reduce(
+    (conflict, task) => conflict
+      || task.conflict
+    , false /*No conflict as initial state*/))
 }
 
-function checkConflicts(date) {
-  data.filter(day => date ? day.date == date : true)
-    .map(day => day.tasks.map(
-      (task, index, tasks) => {
-        if (tasks[index + 1])
-          task.conflict = tasks[index + 1].time == task.time
-        if (!task.conflict && tasks[index - 1])
-          task.conflict = tasks[index - 1].time == task.time
-      }))
-
-  data.filter(day => date ? day.date == date : true)
-    .map(day => day.conflict = day.tasks.reduce(
-      (conflict, task) => conflict
-        || task.conflict
-      , false /*No conflict as initial state*/))
-}
+reorder();
+checkConflicts();
 
 export function getData() {
   return data;
-}
-
-export function getTasks() {
-  return data.map(day => day.tasks);
-}
-
-export function getDays() {
-  return data.map(day => day.date);
-}
-
-export function getDay(args) {
-  var date = args ? args.date : getCurrentDay().date;
-  return data.find(day => day.date == date);
 }
 
 export function getDayTasks(args) {
@@ -52,22 +33,31 @@ export function getDayTasks(args) {
   return data.find(day => day.date == date).tasks;
 }
 
-export function editTask([date, index, task]) {
+export function editingTask([date, index]) {
   if (!date) date = getCurrentDay().date;
+  data.find(day => day.date == date).tasks[index].editing = true;
+}
+
+export function confirmTask([date, index, task]) {
+  if (!date) date = getCurrentDay().date;
+  task.editing = false;
   data.find(day => day.date == date).tasks[index] = task;
-  reorder(date);
+  reorder();
+  checkConflicts();
 }
 
 export function addTask([date, task]) {
   if (!date) date = getCurrentDay().date;
   data.find(day => day.date == date).tasks.push(task);
-  reorder(date);
+  reorder();
+  checkConflicts();
 }
 
 export function removeTask([date, index]) {
   if (!date) date = getCurrentDay().date;
   data.find(day => day.date == date).tasks.splice(index, 1);
-  reorder(date);
+  reorder();
+  checkConflicts();
 }
 
 export function setCurrentDay([index]) {

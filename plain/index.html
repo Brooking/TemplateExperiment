@@ -14,56 +14,59 @@
 </head>
 
 <body>
-  <div id="container">
-    <template id="weekdaysNavBar">
-      <table>
-        <thead class="navBar">
-          <template id="dayNavBar">
-            <td>
-              <a>
-                <!--DAY-->
-              </a>
-            </td>
-          </template>
-        </thead>
-        <tbody>
-          <template id="dayNavTasks">
-            <td>
-              <ul class="navTasks">
-                <template id="dayTask">
-                  <li>
-                    <!--TASKTITLE-->
-                  </li>
-                </template>
-              </ul>
-            </td>
-          </template>
-        </tbody>
-      </table>
-    </template>
-
-    <template id="dayTab">
-      <h1>
-        <!--DAY-->
-      </h1>
-      <ul class="tasks">
-        <template id="taskItem">
-          <li>
-            <ul class="row">
-              <template id="taskProp">
+  <template id="weekdaysNavBar">
+    <table>
+      <thead class="navBar">
+        <template id="dayNavBar">
+          <td>
+            <a>
+              <!--DAY-->
+            </a>
+          </td>
+        </template>
+      </thead>
+      <tbody>
+        <template id="dayNavTasks">
+          <td>
+            <ul class="navTasks">
+              <template id="dayTask">
                 <li>
-                  <!--TASKPROP-->
-                  <!-- <input hidden> -->
+                  <!--TASKTITLE-->
                 </li>
               </template>
             </ul>
-            <div>
-              <!--TASKDESCRIPTION-->
-            </div>
-          </li>
+          </td>
         </template>
-      </ul>
-    </template>
+      </tbody>
+    </table>
+  </template>
+
+  <template id="dayTab">
+    <h1>
+      <!--DAY-->
+    </h1>
+    <ul class="tasks">
+      <template id="taskItem">
+        <li>
+          <ul class="row">
+            <template id="taskProp">
+              <li>
+                <!--TASKPROP-->
+                <!-- <input hidden> -->
+              </li>
+            </template>
+          </ul>
+          <div>
+            <!--TASKDESCRIPTION-->
+          </div>
+        </li>
+      </template>
+    </ul>
+  </template>
+
+  <div id="container">
+    <div id="navBarContainer"></div>
+    <div id="dayTabContainer"></div>
   </div>
 </body>
 

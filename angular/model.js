@@ -3,9 +3,10 @@ import { load } from '../res/data.js';
 export default function model() {
   var calendar = this;
   calendar.days = load();
-  calendar.days.map(day => day.tasks.map(task => task.time = new Date('1970-01-01T' + task.time + ':00')))
 
-  calendar.reorder = () => calendar.days.map(day => day.tasks.sort((t1, t2) => t1.time - t2.time));
+  calendar.reorder = () => {
+    calendar.days.map(day => day.tasks.sort((t1, t2) => t1.time - t2.time));
+  }
   calendar.checkConflicts = () => {
     calendar.days.map(day => day.tasks.map(
       (task, index, tasks) => {
@@ -19,22 +20,29 @@ export default function model() {
       (conflict, task) => conflict
         || task.conflict
       , false /*No conflict as initial state*/))
-
   }
 
   calendar.reorder();
   calendar.checkConflicts();
 
-  calendar.setCurrent = day => calendar.currentDay = day;
   calendar.edit = task => task.edit = true;
-  calendar.confirm = task => { task.edit = false; calendar.reorder(); calendar.checkConflicts(); }
-  calendar.delete = task => calendar.currentDay.tasks = calendar.currentDay.tasks.filter(t => t != task);
+  calendar.confirm = task => {
+    task.edit = false;
+    calendar.reorder();
+    calendar.checkConflicts();
+  }
   calendar.add = () => {
     calendar.currentDay.tasks.push(calendar.currentDay.newTask);
     calendar.currentDay.newTask = {};
     calendar.reorder();
     calendar.checkConflicts();
   }
+  calendar.delete = task => {
+    calendar.currentDay.tasks = calendar.currentDay.tasks.filter(t => t != task);
+    calendar.reorder();
+    calendar.checkConflicts();
+  }
+  calendar.setCurrent = day => calendar.currentDay = day;
 }
 
 // export function getData() {

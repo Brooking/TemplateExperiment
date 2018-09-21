@@ -43,11 +43,11 @@ function NavBar(data) {
   }
 
   // Append Nav Bar
-  var table = document.querySelector('#container').querySelector('table');
+  var table = document.querySelector('#navBarContainer').querySelector('table');
   if (table) {
-    document.querySelector('#container').replaceChild(navBar, table);
+    document.querySelector('#navBarContainer').replaceChild(navBar, table);
   } else {
-    document.querySelector('#container').appendChild(navBar);
+    document.querySelector('#navBarContainer').appendChild(navBar);
   }
 
 }
@@ -64,25 +64,28 @@ function Task(task, index, list) {
   // Time
   var taskProp = taskItem.querySelector('#taskProp').content.cloneNode(true);
   var time = document.createElement('span');
-  time.append(task.time);
+  time.hidden = task.editing;
+  time.append((task.time.getHours() + "").padStart(2, '0') + ":"
+    + (task.time.getMinutes() + "").padStart(2, '0'));
   taskProp.querySelector('li').append(time);
   taskProp.querySelector('li').setAttribute("class", "taskTime");
   taskProp.querySelector('li').append(document.createElement("input"));
   taskProp.querySelector('input').setAttribute("type", "time");
-  taskProp.querySelector('input').value = task.time;
-  taskProp.querySelector('input').hidden = true;
+  taskProp.querySelector('input').value = time.textContent;
+  taskProp.querySelector('input').hidden = !task.editing;
   taskItemUL.append(taskProp);
 
   // Title
   taskProp = taskItem.querySelector('#taskProp').content.cloneNode(true);
   var title = document.createElement('span');
+  title.hidden = task.editing;
   title.append(task.title);
   taskProp.querySelector('li').append(title);
   taskProp.querySelector('li').setAttribute("class", "taskTitle");
   taskProp.querySelector('li').append(document.createElement("input"));
   taskProp.querySelector('input').setAttribute("type", "input");
   taskProp.querySelector('input').value = task.title;
-  taskProp.querySelector('input').hidden = true;
+  taskProp.querySelector('input').hidden = !task.editing;
   taskItemUL.append(taskProp);
 
   // Edit
@@ -91,25 +94,22 @@ function Task(task, index, list) {
   var edit = document.createElement("input");
   edit.setAttribute("value", "Edit");
   edit.setAttribute("type", "button");
+  edit.hidden = task.editing;
   var confirm = document.createElement("input");
   confirm.setAttribute("value", "Confirm");
   confirm.setAttribute("type", "button");
-  confirm.hidden = true;
+  confirm.hidden = !task.editing;
   edit.onclick = () => {
-    taskItemUL.parentNode.querySelectorAll("input, span, textarea").forEach(
-      node => node.hidden = !node.hidden
-    )
+    notify("editingTask", null/*currentDay*/, index);
   }
   confirm.onclick = () => {
-    taskItemUL.parentNode.querySelectorAll("input, span, textarea").forEach(
-      node => node.hidden = !node.hidden
-    )
     var newTaskValues = {
-      time: taskItemUL.parentNode.querySelector(".taskTime input").value,
+      time: new Date('1970-01-01T'
+        + taskItemUL.parentNode.querySelector(".taskTime input").value + ':00'),
       title: taskItemUL.parentNode.querySelector(".taskTitle input").value,
       description: taskItemUL.parentNode.querySelector("textarea").value
     }
-    notify("editTask", null/*currentDay*/, index, newTaskValues);
+    notify("confirmTask", null/*currentDay*/, index, newTaskValues);
   }
   taskProp.querySelector('li').append(edit);
   taskProp.querySelector('li').append(confirm);
@@ -121,6 +121,7 @@ function Task(task, index, list) {
   var del = document.createElement("input");
   del.setAttribute("value", "Delete");
   del.setAttribute("type", "button");
+  del.hidden = task.editing;
   del.onclick = () => {
     notify("removeTask", null/*currentDay*/, index);
   }
@@ -131,10 +132,11 @@ function Task(task, index, list) {
   // Description
   var desc = document.createElement('span');
   desc.append(task.description);
+  desc.hidden = task.editing;
   taskItem.querySelector('div').append(desc);
   taskItem.querySelector('div').append(document.createElement("textarea"));
   taskItem.querySelector('textarea').textContent = task.description;
-  taskItem.querySelector('textarea').hidden = true;
+  taskItem.querySelector('textarea').hidden = !task.editing;
 
   list.append(taskItem);
 }
@@ -198,10 +200,9 @@ function DayTab(day) {
 
   TaskInput(tabUL);
 
-  var container = document.querySelector('#container');
-  for (let i = container.children.length - 1; i >= 0; i--) {
-    const node = container.children[i];
-    if (!(node.tagName == "TABLE" || node.tagName == "TEMPLATE")) node.parentElement.removeChild(node)
+  var container = document.querySelector('#dayTabContainer');
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
   }
   container.appendChild(tab);
 }
@@ -224,12 +225,10 @@ function UpdateTasks(dayTasks) {
 observe("", NavBar, "getData");
 flush()
 observe("setCurrentDay", DayTab, "getCurrentDay");
-observe("editTask", UpdateTasks, "getDayTasks");
+observe("editingTask", UpdateTasks, "getDayTasks");
+observe("confirmTask", UpdateTasks, "getDayTasks");
 observe("addTask", UpdateTasks, "getDayTasks");
 observe("removeTask", UpdateTasks, "getDayTasks");
-observe("editTask", NavBar, "getData");
+observe("confirmTask", NavBar, "getData");
 observe("addTask", NavBar, "getData");
 observe("removeTask", NavBar, "getData");
-
-// observe("", NavBar, "getData");
-// observe("", NavBar, "getData");
