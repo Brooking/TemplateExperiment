@@ -2,11 +2,7 @@ import { load } from '../res/data.js';
 
 var data = load();
 data.forEach(day => reorder(day.date));
-<<<<<<< HEAD
-var currentDayIndex;
-=======
 var currentDay;
->>>>>>> first working template proposal
 
 export function getData() {
   return data;
@@ -75,17 +71,9 @@ function checkConflicts(date) {
 }
 
 export function setCurrentDay([dateString]) {
-<<<<<<< HEAD
-  currentDayIndex = data.findIndex(day => day.date.toString() == dateString);
-}
-
-export function getCurrentDay() {
-  return data[currentDayIndex];
-=======
   currentDay = data.find(day => day.date.toString() == dateString);
 }
 
 export function getCurrentDay() {
   return currentDay;
->>>>>>> first working template proposal
 }

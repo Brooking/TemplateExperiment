@@ -48,7 +48,7 @@
           </h1>
           <ul class="tasks">
             <template id="taskItem" processor="for-each" items="{{tasks}}">
-              <li class="task">
+              <li class="task {{conflict?}}">
                 <ul class="row">
                   <li class="taskTime">
                     <span {{hideifediting?}}>{{time}}</span>
