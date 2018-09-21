@@ -47,7 +47,7 @@ class TemplateInstance {
     // process the parts in this template
     if (this._partArray !== undefined) {
       if (partProcessor == null) {
-        partProcessor = TemplateInstance._defaultPartProcessor;
+        partProcessor = TemplateInstance.defaultPartProcessor;
       }
       partProcessor(this._partArray, params);
     }
@@ -96,7 +96,7 @@ class TemplateInstance {
     })
   }
 
-  static _defaultPartProcessor(parts, params) {
+  static defaultPartProcessor(parts, params) {
     for (const part of parts) {
       part.replaceWith(params[part.expression]);
     }
@@ -191,6 +191,22 @@ class AttributeTemplatePart extends TemplatePart {
     let adjustment = newPartValue.length - oldPartValue.length
     this._end += adjustment;
     this._templateInstance.adjustAttributes(this, adjustment);
+  }
+}
+
+//
+// WholeAttributeTemplatePart class
+//
+class WholeAttributeTemplatePart extends TemplatePart {
+  constructor(templateInstance, expression, node) {
+    super(templateInstance, expression, node, 0, 0);
+    this._node.removeAttribute("{{" + expression + "}}");
+  }
+
+  replaceWith(newPartValue) {
+    // TODO currently a no-op
+    // we should know what the attribute name is so that we can make or
+    // delete it
   }
 }
 
@@ -312,13 +328,21 @@ class PartParser {
     let attributeNames = elementNode.getAttributeNames();
     for (let i = 0; i < attributeNames.length; i++) {
       let attributeName = attributeNames[i];
-      let attributeValue = elementNode.getAttribute(attributeName);
-      let part = PartParser._findNextPart(attributeValue);
-      while (part != null) {
+      let part = PartParser._findNextPart(attributeName);
+      if (part != null) {
+        // this is a whole attribute part
         this._partArray.push(
-          new AttributeTemplatePart(this._templateInstance, part.id,
-            elementNode, attributeName, part.start, part.end));
-        part = PartParser._findNextPart(attributeValue, part.end);
+            new WholeAttributeTemplatePart(this._templateInstance, part.id,
+                                           elementNode));
+      } else {
+        let attributeValue = elementNode.getAttribute(attributeName);
+        let part = PartParser._findNextPart(attributeValue);
+        while (part != null) {
+          this._partArray.push(
+            new AttributeTemplatePart(this._templateInstance, part.id,
+              elementNode, attributeName, part.start, part.end));
+          part = PartParser._findNextPart(attributeValue, part.end);
+        }
       }
     }
   }
