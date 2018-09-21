@@ -24,14 +24,17 @@ class TemplateInstance {
     // remove any internal templates, but keep track of where they go
     this._foreachTemplates = [];
     parser.internalTemplateNodes.forEach(templateNode => {
-      if (templateNode.getAttribute('processor') == 'for-each') {
+      let processor = templateNode.getAttribute('processor');
+      if ( processor == 'for-each') {
         let placeholder = new Text("");
         templateNode.parentElement.replaceChild(placeholder, templateNode);
         this._foreachTemplates.push({templateNode: templateNode,
                                      firstNode: null,
                                      placeholder: placeholder});
       } else {
-          window.alert("The only type of embedded template we know is 'for-each'");
+          window.alert(
+              "The only type of embedded template we know is 'for-each' not '" +
+              processor + "'");
       }
     })
   }
@@ -54,8 +57,18 @@ class TemplateInstance {
       let templateNode = templateStruct.templateNode;
       let placeholder = templateStruct.placeholder;
       let itemsKey = templateNode.getAttribute('items');
+      if (itemsKey.substring(0,2) !== "{{") {
+        window.alert("malformed part, missing start:" + itemsKey);
+      } else if (itemsKey.substring(itemsKey.length - 2) !== "}}") {
+        window.alert("malformed part, missing end:" + itemsKey);
+      }
       itemsKey = itemsKey.substring(2, itemsKey.length - 2);
-      let items = params[itemsKey];
+      let items;
+      if (itemsKey == "") {
+        items = params;
+      } else {
+        items = params[itemsKey];
+      }
 
       while (templateStruct.firstNode != null &&
              templateStruct.firstNode != placeholder) {
@@ -67,7 +80,8 @@ class TemplateInstance {
       let startMarker = new Text("");
       placeholder.parentElement.insertBefore(startMarker, placeholder);
 
-      for (const item of items) {
+      for (let i = 0; i < items.length; i++) {
+        let item = items[i];
         let documentFragment = document.importNode(templateNode.content,
                                                    true/*deep*/);
         let newTemplateInstance = new TemplateInstance(documentFragment);
@@ -194,26 +208,7 @@ class NodeTemplatePart extends TemplatePart {
       range.setStart(this._node, this._start);
       range.setEnd(this._node, this._end);
 
-      if (newPartValue.length !== undefined) {
-        // we were given a string
-        if (this._node.nodeType == Node.TEXT_NODE) {
-          // and we are inserting into a text node
-          this._node.textContent =
-              this._node.textContent.substring(0, this._start) +
-              newPartValue +
-              this._node.textContent.substring(this._end);
-
-          let oldLength = this._end - this._start;
-          let adjustment = newPartValue.length - oldLength;
-          this._end += adjustment;
-          this._templateInstance.adjustText(this, adjustment);
-        } else {
-          // and we are inserting into an element
-          range.deleteContents();
-          range.insertNode(new Text(newPartValue));
-          this._end = range.endOffset;
-        }
-      } else {
+      if (newPartValue.nodeType != undefined) {
         // we were given a node or a document fragment
         if (this._node.nodeType == Node.TEXT_NODE) {
           // and we are inserting into a text node
@@ -236,6 +231,26 @@ class NodeTemplatePart extends TemplatePart {
           range.deleteContents();
           range.insertNode(newPartValue);
           this._node.parentElement.normalize();
+        }
+      } else {
+        // we were given a string (or something else that needs serializing)
+        let newString = newPartValue.toString();
+        if (this._node.nodeType == Node.TEXT_NODE) {
+          // and we are inserting into a text node
+          this._node.textContent =
+              this._node.textContent.substring(0, this._start) +
+              newString +
+              this._node.textContent.substring(this._end);
+
+          let oldLength = this._end - this._start;
+          let adjustment = newString.length - oldLength;
+          this._end += adjustment;
+          this._templateInstance.adjustText(this, adjustment);
+        } else {
+          // and we are inserting into an element
+          range.deleteContents();
+          range.insertNode(new Text(newString));
+          this._end = range.endOffset;
         }
       }
     }
