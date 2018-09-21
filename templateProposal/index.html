@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Plain Calendar App</title>
+  <link rel="stylesheet" href="../res/style.css">
+  <script>
+    var Notify; // Defined in view.js
+  </script>
+  <script type="text/javascript" src="../templatePolyFill/TemplatePolyfill.js"></script>
+  <script type="module" src="view.js"></script>
+</head>
+
+<body>
+    <template id="weekdaysNavBar">
+        <table>
+          <thead class="navBar">
+            <template id="dayNavBar" processor="for-each" items="{{}}">
+              <td class="{{conflict?}}">
+                <a onclick="Notify('setCurrentDay', '{{date}}');">
+                  {{date}}
+                </a>
+                </td>
+            </template>
+          </thead>
+          <tbody>
+            <template id="dayNavTasks" processor="for-each" items="{{}}">
+              <td>
+                <ul class="navTasks">
+                  <template id="dayTask" processor="for-each" items="{{tasks}}">
+                    <li>
+                      {{title}}
+                    </li>
+                  </template>
+                </ul>
+              </td>
+            </template>
+          </tbody>
+        </table>
+      </template>
+
+      <template id="dayTab">
+          <h1>
+            {{day}}
+          </h1>
+          <ul class="tasks">
+            <template id="taskItem" processor="for-each" items="{{tasks}}">
+              <li class="task">
+                <ul class="row">
+                  <li class="taskTime">
+                    <span hidden="{{!editing}}">{{time}}</span>
+                    <input type="time" value="{{time}}" hidden="{{editing}}"/>
+                  </li>
+                  <li class="taskTitle">
+                    <span>{{title}}</span>
+                    <input type="input" value="{{title}}" hidden="{{editing}}"/>
+                  </li>
+                  <li class="taskEdit">
+                    <input type="button" value="Edit"/>
+                    <input type="button" value="Confirm" {{editing}}/>
+                  </li>
+                  <li class="taskDelete">
+                    <input type="button" value="Delete"/>
+                  </li>
+                </ul>
+                <div>
+                  <span>{{description}}</span>
+                  <textarea textContent="{{description}}" {{hidden}}>
+                  </textarea>
+                </div>
+              </li>
+            </template>
+            <li class="task">
+              <ul>
+                <li class="taskTime">
+                  <input type="time"/>
+                </li>
+                <li class="taskTitle">
+                  <input type="input" placeholder="Add a new task"/>
+                </li>
+                <li>
+                  <input type="button" value="Add"/>
+                </li>
+              </ul>
+              <div>
+                <textarea placeholder="Add a description"></textarea>
+              </div>
+            </li>
+          </ul>
+        </template>
+    <div id="container">
+      <div id="navBarContainer"></div>
+      <div id="dayTabContainer"></div>
+    </div>
+</body>
+
+</html>
