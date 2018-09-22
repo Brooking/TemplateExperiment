@@ -22,21 +22,22 @@ class TemplateInstance {
     this._partArray = parser.parts;
 
     // remove any internal templates, but keep track of where they go
-    this._foreachTemplates = [];
-    parser.internalTemplateNodes.forEach(templateNode => {
+    this._internalTemplates = [];
+    for (const templateNode of parser.internalTemplateNodes) {
       let processor = templateNode.getAttribute('processor');
-      if ( processor == 'for-each') {
+      if ( processor == 'for-each' || processor == 'if') {
         let placeholder = new Text("");
         templateNode.parentElement.replaceChild(placeholder, templateNode);
-        this._foreachTemplates.push({templateNode: templateNode,
+        this._internalTemplates.push({templateNode: templateNode,
+                                     type: processor,
                                      firstNode: null,
                                      placeholder: placeholder});
-      } else {
-          window.alert(
-              "The only type of embedded template we know is 'for-each' not '" +
-              processor + "'");
+        } else {
+            window.alert(
+              "The only type of embedded templates we know are " +
+              "'for-each' and 'if' not '" + processor + "'");
       }
-    })
+    }
   }
 
   get documentFragment() {
@@ -52,23 +53,11 @@ class TemplateInstance {
       partProcessor(this._partArray, params);
     }
 
-    // insert new template instances (rows)
-    this._foreachTemplates.forEach(templateStruct => {
+    // insert new template instances (rows or conditionals)
+    for (const templateStruct of this._internalTemplates) {
       let templateNode = templateStruct.templateNode;
       let placeholder = templateStruct.placeholder;
-      let itemsKey = templateNode.getAttribute('items');
-      if (itemsKey.substring(0,2) !== "{{") {
-        window.alert("malformed part, missing start:" + itemsKey);
-      } else if (itemsKey.substring(itemsKey.length - 2) !== "}}") {
-        window.alert("malformed part, missing end:" + itemsKey);
-      }
-      itemsKey = itemsKey.substring(2, itemsKey.length - 2);
-      let items;
-      if (itemsKey == "") {
-        items = params;
-      } else {
-        items = params[itemsKey];
-      }
+      let type = templateStruct.type;
 
       while (templateStruct.firstNode != null &&
              templateStruct.firstNode != placeholder) {
@@ -80,20 +69,49 @@ class TemplateInstance {
       let startMarker = new Text("");
       placeholder.parentElement.insertBefore(startMarker, placeholder);
 
-      for (let i = 0; i < items.length; i++) {
-        let item = items[i];
-        let documentFragment = document.importNode(templateNode.content,
-                                                   true/*deep*/);
-        let newTemplateInstance = new TemplateInstance(documentFragment);
-        newTemplateInstance.update(partProcessor, item);
-        placeholder.parentElement.insertBefore(
-            newTemplateInstance.documentFragment,
-            placeholder);
-      };
+      if (type == 'if') {
+        // this is an 'if' template
+        let expression = templateNode.getAttribute('expression');
+        // TODO resolve any parts in the expression...
+        if (eval(expression) == true) {
+          let documentFragment = document.importNode(templateNode.content,
+            true/*deep*/);
+          let newTemplateInstance = new TemplateInstance(documentFragment);
+          newTemplateInstance.update(partProcessor, params); // TODO: what is the proper params for this update
+          placeholder.parentElement.insertBefore(
+              newTemplateInstance.documentFragment,
+              placeholder);
+        }
+      } else {
+        // this is a 'for-each' template
+        let itemsKey = templateNode.getAttribute('items');
+        if (itemsKey.substring(0,2) !== "{{") {
+          window.alert("malformed part, missing start:" + itemsKey);
+        } else if (itemsKey.substring(itemsKey.length - 2) !== "}}") {
+          window.alert("malformed part, missing end:" + itemsKey);
+        }
+        itemsKey = itemsKey.substring(2, itemsKey.length - 2);
+        let items;
+        if (itemsKey == "") {
+          items = params;
+        } else {
+          items = params[itemsKey];
+        }
+
+        for (const item of items) {
+          let documentFragment = document.importNode(templateNode.content,
+                                                    true/*deep*/);
+          let newTemplateInstance = new TemplateInstance(documentFragment);
+          newTemplateInstance.update(partProcessor, item);
+          placeholder.parentElement.insertBefore(
+              newTemplateInstance.documentFragment,
+              placeholder);
+        }
+      }
 
       templateStruct.firstNode = startMarker.nextSibling;
       startMarker.parentElement.removeChild(startMarker);
-    })
+    }
   }
 
   static defaultPartProcessor(parts, params) {
@@ -326,8 +344,7 @@ class PartParser {
 
   _findPartsInElementNode(elementNode) {
     let attributeNames = elementNode.getAttributeNames();
-    for (let i = 0; i < attributeNames.length; i++) {
-      let attributeName = attributeNames[i];
+    for (const attributeName of attributeNames) {
       let part = PartParser._findNextPart(attributeName);
       if (part != null) {
         // this is a whole attribute part
