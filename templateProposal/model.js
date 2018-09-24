@@ -2,7 +2,7 @@ import { load } from '../res/data.js';
 
 var data = load();
 data.forEach(day => reorder(day.date));
-var currentDayIndex;
+var currentDay;
 
 export function getData() {
   return data;
@@ -71,9 +71,9 @@ function checkConflicts(date) {
 }
 
 export function setCurrentDay([dateString]) {
-  currentDayIndex = data.findIndex(day => day.date.toString() == dateString);
+  currentDay = data.find(day => day.date.toString() == dateString);
 }
 
 export function getCurrentDay() {
-  return data[currentDayIndex];
+  return currentDay;
 }

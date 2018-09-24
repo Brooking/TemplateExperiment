@@ -21,14 +21,14 @@
             <template id="dayNavBar" processor="for-each" items="{{}}">
               <td class="{{conflict?}}">
                 <a onclick="Notify('setCurrentDay', '{{date}}');">
-                  {{date}}
+                  {{date?}}
                 </a>
                 </td>
             </template>
           </thead>
           <tbody>
             <template id="dayNavTasks" processor="for-each" items="{{}}">
-              <td>
+              <td class="{{conflict?}}">
                 <ul class="navTasks">
                   <template id="dayTask" processor="for-each" items="{{tasks}}">
                     <li>
@@ -44,31 +44,31 @@
 
       <template id="dayTab">
           <h1>
-            {{day}}
+            {{date?}}
           </h1>
           <ul class="tasks">
             <template id="taskItem" processor="for-each" items="{{tasks}}">
-              <li class="task">
+              <li class="task {{conflict?}}">
                 <ul class="row">
                   <li class="taskTime">
-                    <span hidden="{{!editing}}">{{time}}</span>
-                    <input type="time" value="{{time}}" hidden="{{editing}}"/>
+                    <span {{hideifediting?}}>{{time}}</span>
+                    <input type="{{timeType}}" value="{{time}}" {{showifediting?}}/>
                   </li>
                   <li class="taskTitle">
-                    <span>{{title}}</span>
-                    <input type="input" value="{{title}}" hidden="{{editing}}"/>
+                    <span {{hideifediting?}}>{{title}}</span>
+                    <input type="input" value="{{title}}" {{showifediting?}}/>
                   </li>
                   <li class="taskEdit">
-                    <input type="button" value="Edit"/>
-                    <input type="button" value="Confirm" {{editing}}/>
+                    <input type="button" value="Edit" {{hideifediting?}}/>
+                    <input type="button" value="Confirm" {{showifediting?}}/>
                   </li>
                   <li class="taskDelete">
                     <input type="button" value="Delete"/>
                   </li>
                 </ul>
                 <div>
-                  <span>{{description}}</span>
-                  <textarea textContent="{{description}}" {{hidden}}>
+                  <span {{hideifediting?}}>{{description}}</span>
+                  <textarea textContent="{{description}}" {{showifediting?}}>
                   </textarea>
                 </div>
               </li>
