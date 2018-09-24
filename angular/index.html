@@ -16,7 +16,7 @@
     <table>
       <thead class="navBar">
         <td class="{{calendar.conflict(day.conflict)}}" ng-repeat="day in calendar.days">
-          <a ng-click="calendar.setCurrent(day)">
+          <a ng-click="calendar.setCurrentDay(day)">
             {{calendar.dayShort(day.date)}} {{day.date.getMonth() + 1}}/{{day.date.getDate()}}
           </a>
         </td>
@@ -39,26 +39,26 @@
         <li class="task {{calendar.conflict(task.conflict)}}" ng-repeat="task in calendar.currentDay.tasks">
           <ul class="row">
             <li class="taskTime">
-              <span ng-if="!task.edit">
+              <span ng-if="!task.editing">
                 {{(task.time.getHours() + "").padStart(2, '0')}}:{{(task.time.getMinutes() + "").padStart(2, '0')}}
               </span>
-              <input ng-if="task.edit" ng-model="task.time" type="time">
+              <input ng-if="task.editing" ng-model="task.time" type="time">
             </li>
             <li class="taskTitle">
-              <span ng-if="!task.edit">{{task.title}}</span>
-              <input ng-if="task.edit" ng-model="task.title">
+              <span ng-if="!task.editing">{{task.title}}</span>
+              <input ng-if="task.editing" ng-model="task.title">
             </li>
             <li class="taskEdit">
-              <input ng-if="!task.edit" ng-click="calendar.edit(task)" value="Edit" type="button">
-              <input ng-if="task.edit" ng-click="calendar.confirm(task)" value="Confirm" type="button">
+              <input ng-if="!task.editing" ng-click="calendar.editingTask(task)" value="Edit" type="button">
+              <input ng-if="task.editing" ng-click="calendar.confirmTask(task)" value="Confirm" type="button">
             </li>
             <li class="taskDelete">
-              <input ng-if="!task.edit" ng-click="calendar.delete(task)" value="Delete" type="button">
+              <input ng-if="!task.editing" ng-click="calendar.deleteTask(task)" value="Delete" type="button">
             </li>
           </ul>
           <div>
-            <span ng-if="!task.edit">{{task.description}}</span>
-            <textarea ng-if="task.edit" ng-model="task.description"></textarea>
+            <span ng-if="!task.editing">{{task.description}}</span>
+            <textarea ng-if="task.editing" ng-model="task.description"></textarea>
           </div>
         </li>
         <li class="task">
@@ -70,7 +70,7 @@
               <input type="input" ng-model="calendar.currentDay.newTask.title" placeholder="Add a new task"></li>
 
             <li class="taskAdd">
-              <input type="button" ng-click="calendar.add()" value="Add"></li>
+              <input type="button" ng-click="calendar.addTask(calendar.currentDay.newTask)" value="Add"></li>
           </ul>
           <div>
             <textarea ng-model="calendar.currentDay.newTask.description" placeholder="Add a description to your task"></textarea></div>

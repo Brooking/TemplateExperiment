@@ -1,4 +1,4 @@
-import model from './model.js';
+import model from '../res/model.js';
 
 var controller = model; // No controller related stuff to add
 export default controller;

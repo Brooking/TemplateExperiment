@@ -14,59 +14,93 @@
 </head>
 
 <body>
-  <template id="weekdaysNavBar">
-    <table>
-      <thead class="navBar">
-        <template id="dayNavBar">
-          <td>
-            <a>
-              <!--DAY-->
-            </a>
-          </td>
-        </template>
-      </thead>
-      <tbody>
-        <template id="dayNavTasks">
-          <td>
-            <ul class="navTasks">
-              <template id="dayTask">
-                <li>
-                  <!--TASKTITLE-->
-                </li>
-              </template>
-            </ul>
-          </td>
-        </template>
-      </tbody>
-    </table>
+  <template id="navBarDay">
+    <td>
+      <a onclick='Notify("setCurrentDay", this.date)'>
+        <!--DAY-->
+      </a>
+    </td>
   </template>
 
-  <template id="dayTab">
+  <template id="navBarDayTask">
+    <li>
+      <!--TASKTITLE-->
+    </li>
+  </template>
+
+  <template id="navBarDayTasks">
+    <td>
+      <ul class="navTasks">
+        <!--NAVBARDAYTASK-->
+      </ul>
+    </td>
+  </template>
+
+  <template id="taskItem">
+    <li class="task">
+      <ul class="row">
+        <li class="taskTime">
+          <span>
+            <!--TIME-->
+          </span>
+          <input type="time">
+        </li>
+        <li class="taskTitle">
+          <span>
+            <!--TITLE-->
+          </span>
+          <input type="input">
+        </li>
+        <li class="taskEdit">
+          <input value="Edit" type="button" onclick='Notify("editingTask", this.task)'>
+          <input value="Confirm" type="button">
+        </li>
+
+        <li class="taskDelete">
+          <input value="Delete" type="button" onclick='Notify("deleteTask", this.task)'>
+        </li>
+      </ul>
+      <div>
+        <span>
+          <!--TASKDESCRIPTION-->
+        </span>
+        <textarea>Discuss this months book</textarea>
+      </div>
+    </li>
+  </template>
+
+  <template id="taskInputs">
+    <li class="task">
+      <ul class="row">
+        <li class="taskTime">
+          <input type="time"></li>
+
+        <li class="taskTitle">
+          <input type="input" placeholder="Add a new task"></li>
+
+        <li class="taskAdd">
+          <input type="button" value="Add"></li>
+      </ul>
+      <div>
+        <textarea placeholder="Add a description to your task"></textarea></div>
+    </li>
+  </template>
+
+  <div id="container">
+    <table>
+      <thead class="navBar">
+        <!--NAVBARDAY-->
+      </thead>
+      <tbody>
+        <!--NAVBARDAYTASKS-->
+      </tbody>
+    </table>
     <h1>
       <!--DAY-->
     </h1>
     <ul class="tasks">
-      <template id="taskItem">
-        <li>
-          <ul class="row">
-            <template id="taskProp">
-              <li>
-                <!--TASKPROP-->
-                <!-- <input hidden> -->
-              </li>
-            </template>
-          </ul>
-          <div>
-            <!--TASKDESCRIPTION-->
-          </div>
-        </li>
-      </template>
+      <!--TASKITEM-->
     </ul>
-  </template>
-
-  <div id="container">
-    <div id="navBarContainer"></div>
-    <div id="dayTabContainer"></div>
   </div>
 </body>
 

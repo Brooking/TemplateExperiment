@@ -1,38 +1,41 @@
-import { notify, observe, flush } from './controller.js';
+import { notify, observe, process } from './controller.js';
 import { dayOfWeekShort, dayOfWeek } from '../res/helper.js';
 
 Notify = notify; // Declared in index.html
 
+function clearChildren(element) {
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
+  }
+}
+
 // Nav Bar creation
 function NavBar(data) {
 
-  var navBar = document.querySelector('#weekdaysNavBar').content.cloneNode(true);
-
   // Populate Nav Bar
-  var navHead = navBar.querySelector('thead');
-  var navBody = navBar.querySelector('tbody');
-  for (let i = 0; i < data.length; i++) {
-    const day = data[i];
+  var navHead = document.querySelector('thead');
+  clearChildren(navHead);
+  var navBody = document.querySelector('tbody');
+  clearChildren(navHead);
+  data.forEach(day => {
     // Set day
-    var navDay = navBar.querySelector('#dayNavBar').content.cloneNode(true);
+    var navDay = document.querySelector('#navBarDay').content.cloneNode(true);
 
     navDay.querySelector('a').append(
       dayOfWeekShort(day.date.getDay()) + " " +
       (day.date.getMonth() + 1) + "/" + (day.date.getDate()));
 
-    navDay.querySelector('a').setAttribute("onclick",
-      'Notify("setCurrentDay", ' + i + ');'
-    );
+    navDay.querySelector('a').date = day;
 
     if (day.conflict) navDay.querySelector('td').setAttribute("class", "conflict");
 
     navHead.append(navDay);
 
     // Tasks preview
-    var taskList = navBar.querySelector('#dayNavTasks').content.cloneNode(true);
-    var navDayUL = taskList.querySelector('ul');
+    var taskList = document.querySelector('#navBarDayTasks').content.cloneNode(true);
+    var navDayUL = taskList.querySelector('.navTasks');
     day.tasks.forEach(task => {
-      var taskItem = taskList.querySelector('#dayTask').content.cloneNode(true);
+      var taskItem = document.querySelector('#navBarDayTask').content.cloneNode(true);
       taskItem.querySelector('li').append(task.title);
       navDayUL.append(taskItem);
     });
@@ -40,195 +43,145 @@ function NavBar(data) {
     if (day.conflict) taskList.querySelector('td').setAttribute("class", "conflict");
 
     navBody.append(taskList);
-  }
+  });
+}
 
-  // Append Nav Bar
-  var table = document.querySelector('#navBarContainer').querySelector('table');
-  if (table) {
-    document.querySelector('#navBarContainer').replaceChild(navBar, table);
-  } else {
-    document.querySelector('#navBarContainer').appendChild(navBar);
-  }
+function UpdateNavBar(day) {
+  var navDay = document.querySelector('thead td:nth-child(' + (day.date.getDay() + 1) + ') a');
+  clearChildren(navDay);
+  navDay.append(
+    dayOfWeekShort(day.date.getDay()) + " " +
+    (day.date.getMonth() + 1) + "/" + (day.date.getDate()));
+  if (day.conflict)
+    navDay.parentNode.setAttribute("class", "conflict");
+  else
+    navDay.parentNode.removeAttribute("class");
 
+
+  var taskList = document.querySelector('tbody td:nth-child(' + (day.date.getDay() + 1) + ') .navTasks');
+  clearChildren(taskList);
+  day.tasks.forEach(task => {
+    var taskItem = document.querySelector('#navBarDayTask').content.cloneNode(true);
+    taskItem.querySelector('li').append(task.title);
+    taskList.append(taskItem);
+  });
+
+  if (day.conflict)
+    taskList.parentNode.setAttribute("class", "conflict");
+  else
+    taskList.parentNode.removeAttribute("class");
 }
 
 // Task Creation
-function Task(task, index, list) {
-  var taskItem = list.querySelector('#taskItem').content.cloneNode(true);
-  var taskItemUL = taskItem.querySelector('ul');
-  taskItem.querySelector('li').setAttribute("class", "task");
+function Task(task, list) {
+  var taskItem = document.querySelector('#taskItem').content.cloneNode(true);
 
   if (task.conflict) taskItem.querySelector('li').setAttribute("class", "conflict");
 
-
   // Time
-  var taskProp = taskItem.querySelector('#taskProp').content.cloneNode(true);
-  var time = document.createElement('span');
-  time.hidden = task.editing;
-  time.append((task.time.getHours() + "").padStart(2, '0') + ":"
-    + (task.time.getMinutes() + "").padStart(2, '0'));
-  taskProp.querySelector('li').append(time);
-  taskProp.querySelector('li').setAttribute("class", "taskTime");
-  taskProp.querySelector('li').append(document.createElement("input"));
-  taskProp.querySelector('input').setAttribute("type", "time");
-  taskProp.querySelector('input').value = time.textContent;
-  taskProp.querySelector('input').hidden = !task.editing;
-  taskItemUL.append(taskProp);
+  var time = (task.time.getHours() + "").padStart(2, '0') + ":"
+    + (task.time.getMinutes() + "").padStart(2, '0');
+  var taskTime = taskItem.querySelector('.taskTime');
+  var timeSpan = taskTime.querySelector('span');
+  timeSpan.hidden = task.editing;
+  timeSpan.append(time);
+  var timeInput = taskTime.querySelector('input');
+  timeInput.value = time;
+  timeInput.hidden = !task.editing;
 
   // Title
-  taskProp = taskItem.querySelector('#taskProp').content.cloneNode(true);
-  var title = document.createElement('span');
-  title.hidden = task.editing;
-  title.append(task.title);
-  taskProp.querySelector('li').append(title);
-  taskProp.querySelector('li').setAttribute("class", "taskTitle");
-  taskProp.querySelector('li').append(document.createElement("input"));
-  taskProp.querySelector('input').setAttribute("type", "input");
-  taskProp.querySelector('input').value = task.title;
-  taskProp.querySelector('input').hidden = !task.editing;
-  taskItemUL.append(taskProp);
+  var taskTitle = taskItem.querySelector('.taskTitle');
+  var titleSpan = taskTitle.querySelector('span');
+  titleSpan.hidden = task.editing;
+  titleSpan.append(task.title);
+  var titleInput = taskTitle.querySelector('input');
+  titleInput.value = task.title;
+  titleInput.hidden = !task.editing;
 
   // Edit
-  taskProp = taskItem.querySelector('#taskProp').content.cloneNode(true);
-
-  var edit = document.createElement("input");
-  edit.setAttribute("value", "Edit");
-  edit.setAttribute("type", "button");
+  var taskEdit = taskItem.querySelector('.taskEdit');
+  var inputs = taskEdit.querySelectorAll("input");
+  var edit = inputs[0], confirm = inputs[1];
   edit.hidden = task.editing;
-  var confirm = document.createElement("input");
-  confirm.setAttribute("value", "Confirm");
-  confirm.setAttribute("type", "button");
   confirm.hidden = !task.editing;
-  edit.onclick = () => {
-    notify("editingTask", null/*currentDay*/, index);
-  }
   confirm.onclick = () => {
-    var newTaskValues = {
-      time: new Date('1970-01-01T'
-        + taskItemUL.parentNode.querySelector(".taskTime input").value + ':00'),
-      title: taskItemUL.parentNode.querySelector(".taskTitle input").value,
-      description: taskItemUL.parentNode.querySelector("textarea").value
-    }
-    notify("confirmTask", null/*currentDay*/, index, newTaskValues);
+    confirm.task.time = new Date('1970-01-01T' + timeInput.value + ':00');
+    confirm.task.title = titleInput.value;
+    confirm.task.description = descInput.value;
+    notify("confirmTask", confirm.task);
   }
-  taskProp.querySelector('li').append(edit);
-  taskProp.querySelector('li').append(confirm);
-  taskProp.querySelector('li').setAttribute("class", "taskEdit");
-  taskItemUL.append(taskProp);
 
   // Delete
-  taskProp = taskItem.querySelector('#taskProp').content.cloneNode(true);
-  var del = document.createElement("input");
-  del.setAttribute("value", "Delete");
-  del.setAttribute("type", "button");
+  var taskDelete = taskItem.querySelector('.taskDelete');
+  var del = taskDelete.querySelector("input");
   del.hidden = task.editing;
-  del.onclick = () => {
-    notify("removeTask", null/*currentDay*/, index);
-  }
-  taskProp.querySelector('li').append(del);
-  taskProp.querySelector('li').setAttribute("class", "taskDelete");
-  taskItemUL.append(taskProp);
+
+  del.task = edit.task = confirm.task = task;
 
   // Description
-  var desc = document.createElement('span');
-  desc.append(task.description);
-  desc.hidden = task.editing;
-  taskItem.querySelector('div').append(desc);
-  taskItem.querySelector('div').append(document.createElement("textarea"));
-  taskItem.querySelector('textarea').textContent = task.description;
-  taskItem.querySelector('textarea').hidden = !task.editing;
+  var descSpan = taskItem.querySelector('div span');
+  descSpan.append(task.description);
+  descSpan.hidden = task.editing;
+  var descInput = taskItem.querySelector('div textarea');
+  descInput.textContent = task.description;
+  descInput.hidden = !task.editing;
 
   list.append(taskItem);
 }
 
-function TaskInput(tabUL) {
-  // Inputs for new task
-  var taskItem = tabUL.querySelector('#taskItem').content.cloneNode(true);
-  var taskItemUL = taskItem.querySelector('ul');
-  taskItem.querySelector('li').setAttribute("class", "task");
-  // Time
-  var taskProp = taskItem.querySelector('#taskProp').content.cloneNode(true);
-  taskProp.querySelector('li').append(document.createElement("input"));
-  taskProp.querySelector('li').setAttribute("class", "taskTime");
-  taskProp.querySelector('input').setAttribute("type", "time");
-  taskItemUL.append(taskProp);
-  // Title
-  taskProp = taskItem.querySelector('#taskProp').content.cloneNode(true);
-  taskProp.querySelector('li').append(document.createElement("input"));
-  taskProp.querySelector('li').setAttribute("class", "taskTitle");
-  taskProp.querySelector('input').setAttribute("type", "input");
-  taskProp.querySelector('input').setAttribute("placeholder", "Add a new task");
-  taskItemUL.append(taskProp);
-  // Add
-  taskProp = taskItem.querySelector('#taskProp').content.cloneNode(true);
-  taskProp.querySelector('li').append(document.createElement("input"));
-  taskProp.querySelector('li').setAttribute("class", "taskAdd");
-  taskProp.querySelector('input').setAttribute("type", "button");
-  taskProp.querySelector('input').setAttribute("value", "Add");
-  taskProp.querySelector('input').onclick = () => {
-    var newTaskValues = {
-      time: taskItemUL.parentNode.querySelector(".taskTime input").value,
-      title: taskItemUL.parentNode.querySelector(".taskTitle input").value,
-      description: taskItemUL.parentNode.querySelector("textarea").value
+// Inputs for new task
+function TaskInput(list) {
+  var taskInputs = document.querySelector('#taskInputs').content.cloneNode(true);
+  var add = taskInputs.querySelector('.taskAdd input');
+  var task = taskInputs.querySelector('li');
+  task.querySelector(".taskTime input").value = "12:00";
+  add.onclick = () => {
+    var newTask = {
+      time: new Date('1970-01-01T' +
+        task.querySelector(".taskTime input").value + ':00'),
+      title: task.querySelector(".taskTitle input").value,
+      description: task.querySelector("textarea").value
     }
-    notify("addTask", null/*currentDay*/, newTaskValues);
+    notify("addTask", newTask);
   }
 
-  taskItemUL.append(taskProp);
-
-  // Description
-  taskItem.querySelector('div').append(document.createElement("textarea"));
-  taskItem.querySelector('textarea').setAttribute("placeholder", "Add a description to your task");
-
-  tabUL.append(taskItem);
+  list.append(taskInputs);
 }
 
 // Tab Creation
 function DayTab(day) {
 
-  if (!day) return;
+  clearChildren(document.querySelector('h1'));
+  document.querySelector('h1').append(dayOfWeek(day.date.getDay()));
 
-  var tab = document.querySelector('#dayTab').content.cloneNode(true);
-
-  tab.querySelector('h1').append(dayOfWeek(day.date.getDay()));
-
-  var tabUL = tab.querySelector('ul');
-  for (let i = 0; i < day.tasks.length; i++) {
-    const task = day.tasks[i];
-    Task(task, i, tabUL);
-  }
-
-  TaskInput(tabUL);
-
-  var container = document.querySelector('#dayTabContainer');
-  while (container.firstChild) {
-    container.removeChild(container.firstChild);
-  }
-  container.appendChild(tab);
+  UpdateTasks(day.tasks);
 }
 
 // Update Tasks
 function UpdateTasks(dayTasks) {
   var tasks = document.querySelector('.tasks');
-  for (let i = tasks.children.length - 1; i >= 0; i--) {
-    const node = tasks.children[i];
-    if (node.tagName != "TEMPLATE") node.parentElement.removeChild(node)
-  }
+
+  clearChildren(tasks);
   for (let i = 0; i < dayTasks.length; i++) {
-    const task = dayTasks[i];
-    Task(task, i, tasks);
+    Task(dayTasks[i], tasks);
   }
 
   TaskInput(tasks);
 }
 
-observe("", NavBar, "getData");
-flush()
+// Set the initial NavBar
+process(NavBar, "getData");
+
+// Set listener for current day change
 observe("setCurrentDay", DayTab, "getCurrentDay");
+
+// Set tasks listeners for the task list in the day tab
 observe("editingTask", UpdateTasks, "getDayTasks");
 observe("confirmTask", UpdateTasks, "getDayTasks");
 observe("addTask", UpdateTasks, "getDayTasks");
-observe("removeTask", UpdateTasks, "getDayTasks");
-observe("confirmTask", NavBar, "getData");
-observe("addTask", NavBar, "getData");
-observe("removeTask", NavBar, "getData");
+observe("deleteTask", UpdateTasks, "getDayTasks");
+
+// Set tasks listeners for the task list in the NavBar
+observe("confirmTask", UpdateNavBar, "getCurrentDay");
+observe("addTask", UpdateNavBar, "getCurrentDay");
+observe("deleteTask", UpdateNavBar, "getCurrentDay");
