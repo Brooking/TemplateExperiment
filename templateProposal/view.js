@@ -40,20 +40,12 @@ function NavBarPartsProcessor(parts, state) {
 }
 
 // day tab parts processor override
-<<<<<<< HEAD
 function DayTabPartsProcessor(parts, state) {
   localDefaultPartProcessor(parts, state);
 
   for (const part of parts) {
     // Hack: simplify full date to just "Wednesday"
     // (state is a day)
-=======
-function DayTabPartsProcessor(parts, day) {
-  localDefaultPartProcessor(parts, day);
-
-  for (const part of parts) {
-    // Hack: simplify full date to just "WED"
->>>>>>> regularized for statements
     if (part.expression == "date?") {
       part.replaceWith(dayOfWeek(state.date.getDay()));
     }
@@ -63,7 +55,6 @@ function DayTabPartsProcessor(parts, day) {
     if (part.expression == "timeType") {
       part.replaceWith("time");
     }
-<<<<<<< HEAD
 
     // Hack: need to format time as HH:MM
     // (state is a task)
@@ -75,8 +66,6 @@ function DayTabPartsProcessor(parts, day) {
       }
       part.replaceWith(hours + ":" + minutes);
     }
-=======
->>>>>>> not hidden anymore
   }
 }
 
