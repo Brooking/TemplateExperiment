@@ -1,20 +1,26 @@
-import * as model from './model.js';
+import Model from '../res/model.js';
+
+var model = new Model();
 
 var listeners = [];
 
-export function observe(change, callback, request, params) {
+export function observe(change, callback, request) {
   listeners.push({
-    change: model[change], callback: callback, request: request, params: params
+    change: model[change], callback: callback, request: request
   });
 }
 
-export function notify(change, ...value) {
+export function notify(change, value) {
   model[change](value);
   flush(model[change]);
 }
 
-export function flush(change) {
-  listeners.filter(l => change? l.change == change : true).map(
-    l => l.callback(model[l.request](l.params))
+function flush(change) {
+  listeners.filter(l => change ? l.change == change : true).map(
+    l => l.callback(model[l.request]())
   );
+}
+
+export function process(callback, request) {
+  callback(model[request]());
 }

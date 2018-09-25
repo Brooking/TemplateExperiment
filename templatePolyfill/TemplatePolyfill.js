@@ -24,18 +24,18 @@ class TemplateInstance {
     // remove any internal templates, but keep track of where they go
     this._internalTemplates = [];
     for (const templateNode of parser.internalTemplateNodes) {
-      let processor = templateNode.getAttribute('processor');
-      if ( processor == 'for-each' || processor == 'if') {
+      let directive = templateNode.getAttribute('directive');
+      if ( directive == 'for-each' || directive == 'if') {
         let placeholder = new Text("");
-        templateNode.parentElement.replaceChild(placeholder, templateNode);
+        templateNode.parentNode.replaceChild(placeholder, templateNode);
         this._internalTemplates.push({templateNode: templateNode,
-                                     type: processor,
+                                     type: directive,
                                      firstNode: null,
                                      placeholder: placeholder});
         } else {
             window.alert(
               "The only type of embedded templates we know are " +
-              "'for-each' and 'if' not '" + processor + "'");
+              "'for-each' and 'if' not '" + directive + "'");
       }
     }
   }
@@ -63,22 +63,34 @@ class TemplateInstance {
              templateStruct.firstNode != placeholder) {
         let nodeToRemove = templateStruct.firstNode;
         templateStruct.firstNode = templateStruct.firstNode.nextSibling;
-        nodeToRemove.parentElement.removeChild(nodeToRemove);
+        nodeToRemove.parentNode.removeChild(nodeToRemove);
       }
 
       let startMarker = new Text("");
-      placeholder.parentElement.insertBefore(startMarker, placeholder);
+      placeholder.parentNode.insertBefore(startMarker, placeholder);
 
       if (type == 'if') {
         // this is an 'if' template
         let expression = templateNode.getAttribute('expression');
-        // TODO resolve any parts in the expression...
+
+        // resolve any parts in the expression
+        let base = 0;
+        let ePart = PartParser._findNextPart(expression, 0);
+        while(ePart != null) {
+          let replacement = params[ePart.id];
+          expression = expression.substring(0, ePart.start) +
+                       replacement +
+                       expression.substring(ePart.end);
+          ePart = PartParser._findNextPart(expression, ePart.end);
+        }
+
+        // evaluate the expression
         if (eval(expression) == true) {
           let documentFragment = document.importNode(templateNode.content,
             true/*deep*/);
           let newTemplateInstance = new TemplateInstance(documentFragment);
           newTemplateInstance.update(partProcessor, params); // TODO: what is the proper params for this update
-          placeholder.parentElement.insertBefore(
+          placeholder.parentNode.insertBefore(
               newTemplateInstance.documentFragment,
               placeholder);
         }
@@ -103,20 +115,44 @@ class TemplateInstance {
                                                     true/*deep*/);
           let newTemplateInstance = new TemplateInstance(documentFragment);
           newTemplateInstance.update(partProcessor, item);
-          placeholder.parentElement.insertBefore(
+          placeholder.parentNode.insertBefore(
               newTemplateInstance.documentFragment,
               placeholder);
         }
       }
 
       templateStruct.firstNode = startMarker.nextSibling;
-      startMarker.parentElement.removeChild(startMarker);
+      startMarker.parentNode.removeChild(startMarker);
     }
   }
 
   static defaultPartProcessor(parts, params) {
     for (const part of parts) {
-      part.replaceWith(params[part.expression]);
+      let property = false;
+      let expression = part.expression;
+      if (expression.substring(0,1) == '$') {
+        // {{$xxx}} implies a property request
+        property = true;
+        expression = expression.substring(1);
+      }
+
+      let replacement;
+      if (expression == "") {
+        // use 'this'
+        replacement = params;
+      } else {
+        // use 'this.expression'
+        replacement = params[expression];
+      }
+
+      if (property) {
+        // remove the attribute and add a property
+        part.node.removeAttribute(part.attributeName);
+        part.node[part.attributeName] = replacement;
+      } else {
+        // replace the property
+        part.replaceWith(replacement);
+      }
     }
   }
 
@@ -176,6 +212,10 @@ class TemplatePart {
     return this._expression;
   }
 
+  get node() {
+    return this._node;
+  }
+
 }
 
 //
@@ -187,7 +227,7 @@ class AttributeTemplatePart extends TemplatePart {
     this._attributeName = attributeName;
   }
 
-  get attribute() {
+  get attributeName() {
     return this._attributeName;
   }
 
@@ -252,7 +292,7 @@ class NodeTemplatePart extends TemplatePart {
 
           range.deleteContents();
           range.insertNode(newPartValue);
-          this._node.parentElement.normalize();
+          this._node.parentNode.normalize();
 
           if (!rangeToRight.collapsed) {
             this._templateInstance.adjustTextInNewNode(
@@ -264,7 +304,7 @@ class NodeTemplatePart extends TemplatePart {
           // and we are inserting into an element node
           range.deleteContents();
           range.insertNode(newPartValue);
-          this._node.parentElement.normalize();
+          this._node.parentNode.normalize();
         }
       } else {
         // we were given a string (or something else that needs serializing)

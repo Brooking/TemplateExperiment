@@ -38,12 +38,12 @@ export function load() {
       tasks: [
         {
           time: new Date('1970-01-01T09:30:00'),
-          title: "Call ISP Technitian",
+          title: "Call ISP Technician",
           description: "Call ISP service to replace faulty modem"
         },
         {
           time: new Date('1970-01-01T11:30:00'),
-          title: "Lunck Meeting",
+          title: "Lunch Meeting",
           description: "Meet the team for a team lunch"
         },
         {
@@ -74,7 +74,7 @@ export function load() {
         {
           time: new Date('1970-01-01T11:00:00'),
           title: "Book Club Meeting",
-          description: "Discuss this months book"
+          description: "Discuss this month's book"
         },
         {
           time: new Date('1970-01-01T11:00:00'),
@@ -83,7 +83,7 @@ export function load() {
         },
         {
           time: new Date('1970-01-01T20:00:00'),
-          title: "Marineers Game",
+          title: "Mariners Game",
           description: "Don't miss the playoffs!"
         }
       ]
@@ -99,7 +99,7 @@ export function load() {
         {
           time: new Date('1970-01-01T12:00:00'),
           title: "Lunch John",
-          description: "Have lunck with John"
+          description: "Have lunch with John"
         }
       ]
     },
@@ -124,7 +124,7 @@ export function load() {
         {
           time: new Date('1970-01-01T14:00:00'),
           title: "Family Reunion",
-          description: "Meet up at folk's house with the rest of the family"
+          description: "Meet up at folks' house with the rest of the family"
         }
       ]
     }

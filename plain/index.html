@@ -14,7 +14,7 @@
 </head>
 
 <body>
-  <template id="navBarDay">
+  <template id="navBarDayTemplate">
     <td>
       <a onclick='Notify("setCurrentDay", this.date)'>
         <!--DAY-->
@@ -22,13 +22,13 @@
     </td>
   </template>
 
-  <template id="navBarDayTask">
+  <template id="navBarDayTaskTemplate">
     <li>
       <!--TASKTITLE-->
     </li>
   </template>
 
-  <template id="navBarDayTasks">
+  <template id="navBarDayTasksTemplate">
     <td>
       <ul class="navTasks">
         <!--NAVBARDAYTASK-->
@@ -36,7 +36,7 @@
     </td>
   </template>
 
-  <template id="taskItem">
+  <template id="taskItemTemplate">
     <li class="task">
       <ul class="row">
         <li class="taskTime">
@@ -69,7 +69,7 @@
     </li>
   </template>
 
-  <template id="taskInputs">
+  <template id="taskInputsTemplate">
     <li class="task">
       <ul class="row">
         <li class="taskTime">
