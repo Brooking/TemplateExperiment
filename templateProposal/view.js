@@ -63,6 +63,7 @@ function DayTabPartsProcessor(parts, day) {
     if (part.expression == "timeType") {
       part.replaceWith("time");
     }
+<<<<<<< HEAD
 
     // Hack: need to format time as HH:MM
     // (state is a task)
@@ -74,6 +75,8 @@ function DayTabPartsProcessor(parts, day) {
       }
       part.replaceWith(hours + ":" + minutes);
     }
+=======
+>>>>>>> not hidden anymore
   }
 }
 

@@ -50,6 +50,7 @@
           <ul class="tasks">
             <template id="taskItem" directive="for-each" items="{{tasks}}">
               <li class="task {{conflict?}}">
+<<<<<<< HEAD
                 <template id="taskItemNotEditing" directive="if" expression="{{editing}} == false">
                   <ul class="row">
                     <li class="taskTime">
@@ -60,12 +61,25 @@
                     </li>
                     <li class="taskEdit">
                       <input task={{$}} type="button" value="Edit" onclick="Notify('editingTask', this.task);"/>
+=======
+                <template id="taskItemEditing" directive="if" expression="{{editing}} != false">
+                  <ul class="row">
+                    <li class="taskTime">
+                      <input type="{{timeType}}" value="{{time}}"/>
+                    </li>
+                    <li class="taskTitle">
+                      <input type="input" value="{{title}}"/>
+                    </li>
+                    <li class="taskEdit">
+                      <input task={{$}} type="button" value="Confirm" onclick="Notify('confirmTask', this.task);"/>
+>>>>>>> not hidden anymore
                     </li>
                     <li class="taskDelete">
                       <input task={{$}} type="button" value="Delete" onclick="Notify('deleteTask', this.task);"/>
                     </li>
                   </ul>
                   <div>
+<<<<<<< HEAD
                     <span>{{description}}</span>
                   </div>
                 </template>
@@ -79,13 +93,34 @@
                     </li>
                     <li class="taskEdit">
                       <input task={{$}} type="button" value="Confirm" onclick="onConfirm(this, this.task);"/>
+=======
+                    <textarea textContent="{{description}}">
+                    </textarea>
+                  </div>
+                </template>
+                <template id="taskItemNotEditing" directive="if" expression="{{editing}} == false">
+                  <ul class="row">
+                    <li class="taskTime">
+                      <span >{{time}}</span>
+                    </li>
+                    <li class="taskTitle">
+                      <span >{{title}}</span>
+                    </li>
+                    <li class="taskEdit">
+                      <input task={{$}} type="button" value="Edit" onclick="Notify('editingTask', this.task);"/>
+>>>>>>> not hidden anymore
                     </li>
                     <li class="taskDelete">
                       <input task={{$}} type="button" value="Delete" onclick="Notify('deleteTask', this.task);"/>
                     </li>
                   </ul>
                   <div>
+<<<<<<< HEAD
                     <textarea>{{description}}</textarea>
+=======
+                    <span>{{description}}</span>
+                    </textarea>
+>>>>>>> not hidden anymore
                   </div>
                 </template>
               </li>
