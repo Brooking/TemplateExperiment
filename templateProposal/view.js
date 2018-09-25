@@ -40,12 +40,20 @@ function NavBarPartsProcessor(parts, state) {
 }
 
 // day tab parts processor override
+<<<<<<< HEAD
 function DayTabPartsProcessor(parts, state) {
   localDefaultPartProcessor(parts, state);
 
   for (const part of parts) {
     // Hack: simplify full date to just "Wednesday"
     // (state is a day)
+=======
+function DayTabPartsProcessor(parts, day) {
+  localDefaultPartProcessor(parts, day);
+
+  for (const part of parts) {
+    // Hack: simplify full date to just "WED"
+>>>>>>> regularized for statements
     if (part.expression == "date?") {
       part.replaceWith(dayOfWeek(state.date.getDay()));
     }
