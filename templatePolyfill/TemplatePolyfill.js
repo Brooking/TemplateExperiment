@@ -27,7 +27,7 @@ class TemplateInstance {
       let directive = templateNode.getAttribute('directive');
       if ( directive == 'for-each' || directive == 'if') {
         let placeholder = new Text("");
-        templateNode.parentElement.replaceChild(placeholder, templateNode);
+        templateNode.parentNode.replaceChild(placeholder, templateNode);
         this._internalTemplates.push({templateNode: templateNode,
                                      type: directive,
                                      firstNode: null,
@@ -63,22 +63,34 @@ class TemplateInstance {
              templateStruct.firstNode != placeholder) {
         let nodeToRemove = templateStruct.firstNode;
         templateStruct.firstNode = templateStruct.firstNode.nextSibling;
-        nodeToRemove.parentElement.removeChild(nodeToRemove);
+        nodeToRemove.parentNode.removeChild(nodeToRemove);
       }
 
       let startMarker = new Text("");
-      placeholder.parentElement.insertBefore(startMarker, placeholder);
+      placeholder.parentNode.insertBefore(startMarker, placeholder);
 
       if (type == 'if') {
         // this is an 'if' template
         let expression = templateNode.getAttribute('expression');
-        // TODO resolve any parts in the expression...
+
+        // resolve any parts in the expression
+        let base = 0;
+        let ePart = PartParser._findNextPart(expression, 0);
+        while(ePart != null) {
+          let replacement = params[ePart.id];
+          expression = expression.substring(0, ePart.start) +
+                       replacement +
+                       expression.substring(ePart.end);
+          ePart = PartParser._findNextPart(expression, ePart.end);
+        }
+
+        // evaluate the expression
         if (eval(expression) == true) {
           let documentFragment = document.importNode(templateNode.content,
             true/*deep*/);
           let newTemplateInstance = new TemplateInstance(documentFragment);
           newTemplateInstance.update(partProcessor, params); // TODO: what is the proper params for this update
-          placeholder.parentElement.insertBefore(
+          placeholder.parentNode.insertBefore(
               newTemplateInstance.documentFragment,
               placeholder);
         }
@@ -103,14 +115,14 @@ class TemplateInstance {
                                                     true/*deep*/);
           let newTemplateInstance = new TemplateInstance(documentFragment);
           newTemplateInstance.update(partProcessor, item);
-          placeholder.parentElement.insertBefore(
+          placeholder.parentNode.insertBefore(
               newTemplateInstance.documentFragment,
               placeholder);
         }
       }
 
       templateStruct.firstNode = startMarker.nextSibling;
-      startMarker.parentElement.removeChild(startMarker);
+      startMarker.parentNode.removeChild(startMarker);
     }
   }
 
@@ -280,7 +292,7 @@ class NodeTemplatePart extends TemplatePart {
 
           range.deleteContents();
           range.insertNode(newPartValue);
-          this._node.parentElement.normalize();
+          this._node.parentNode.normalize();
 
           if (!rangeToRight.collapsed) {
             this._templateInstance.adjustTextInNewNode(
@@ -292,7 +304,7 @@ class NodeTemplatePart extends TemplatePart {
           // and we are inserting into an element node
           range.deleteContents();
           range.insertNode(newPartValue);
-          this._node.parentElement.normalize();
+          this._node.parentNode.normalize();
         }
       } else {
         // we were given a string (or something else that needs serializing)
