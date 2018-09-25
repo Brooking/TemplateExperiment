@@ -15,14 +15,14 @@
   <div id="container" ng-controller="CalendarController as calendar">
     <table>
       <thead class="navBar">
-        <td class="{{calendar.conflict(day.conflict)}}" ng-repeat="day in calendar.days">
+        <td class="{{calendar.conflict(day.conflict)}} {{calendar.active(day.current)}}" ng-repeat="day in calendar.days">
           <a ng-click="calendar.setCurrentDay(day)">
             {{calendar.dayShort(day.date)}} {{day.date.getMonth() + 1}}/{{day.date.getDate()}}
           </a>
         </td>
       </thead>
       <tbody>
-        <td class="{{calendar.conflict(day.conflict)}}" ng-repeat="day in calendar.days">
+        <td class="{{calendar.conflict(day.conflict)}} {{calendar.active(day.current)}}" ng-repeat="day in calendar.days">
           <ul class="navTasks">
             <li ng-repeat="task in day.tasks">
               {{task.title}}

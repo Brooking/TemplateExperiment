@@ -16,7 +16,7 @@ function NavBar(data) {
   var navHead = document.querySelector('thead');
   clearChildren(navHead);
   var navBody = document.querySelector('tbody');
-  clearChildren(navHead);
+  clearChildren(navBody);
   data.forEach(day => {
     // Set day
     var navDay = document.querySelector('#navBarDay').content.cloneNode(true);
@@ -25,9 +25,10 @@ function NavBar(data) {
       dayOfWeekShort(day.date.getDay()) + " " +
       (day.date.getMonth() + 1) + "/" + (day.date.getDate()));
 
-    navDay.querySelector('a').date = day;
+    navDay.querySelector('a').day = day;
 
-    if (day.conflict) navDay.querySelector('td').setAttribute("class", "conflict");
+    if (day.conflict) navDay.querySelector('td').classList.add("conflict");
+    if (day.current) navDay.querySelector('td').classList.add("active");
 
     navHead.append(navDay);
 
@@ -40,7 +41,8 @@ function NavBar(data) {
       navDayUL.append(taskItem);
     });
 
-    if (day.conflict) taskList.querySelector('td').setAttribute("class", "conflict");
+    if (day.conflict) taskList.querySelector('td').classList.add("conflict");
+    if (day.current) taskList.querySelector('td').classList.add("active");
 
     navBody.append(taskList);
   });
@@ -53,10 +55,9 @@ function UpdateNavBar(day) {
     dayOfWeekShort(day.date.getDay()) + " " +
     (day.date.getMonth() + 1) + "/" + (day.date.getDate()));
   if (day.conflict)
-    navDay.parentNode.setAttribute("class", "conflict");
+    navDay.parentNode.classList.add("conflict");
   else
-    navDay.parentNode.removeAttribute("class");
-
+    navDay.parentNode.classList.remove("conflict");
 
   var taskList = document.querySelector('tbody td:nth-child(' + (day.date.getDay() + 1) + ') .navTasks');
   clearChildren(taskList);
@@ -67,16 +68,16 @@ function UpdateNavBar(day) {
   });
 
   if (day.conflict)
-    taskList.parentNode.setAttribute("class", "conflict");
+    taskList.parentNode.classList.add("conflict");
   else
-    taskList.parentNode.removeAttribute("class");
+    taskList.parentNode.classList.remove("conflict");
 }
 
 // Task Creation
 function Task(task, list) {
   var taskItem = document.querySelector('#taskItem').content.cloneNode(true);
 
-  if (task.conflict) taskItem.querySelector('li').setAttribute("class", "conflict");
+  if (task.conflict) taskItem.querySelector('li').classList.add("conflict");
 
   // Time
   var time = (task.time.getHours() + "").padStart(2, '0') + ":"
@@ -172,16 +173,17 @@ function UpdateTasks(dayTasks) {
 // Set the initial NavBar
 process(NavBar, "getData");
 
+// Set tasks listeners for the task list in the NavBar
+observe("confirmTask", UpdateNavBar, "getCurrentDay");
+observe("addTask", UpdateNavBar, "getCurrentDay");
+observe("deleteTask", UpdateNavBar, "getCurrentDay");
+
 // Set listener for current day change
 observe("setCurrentDay", DayTab, "getCurrentDay");
+observe("setCurrentDay", NavBar, "getData");
 
 // Set tasks listeners for the task list in the day tab
 observe("editingTask", UpdateTasks, "getDayTasks");
 observe("confirmTask", UpdateTasks, "getDayTasks");
 observe("addTask", UpdateTasks, "getDayTasks");
 observe("deleteTask", UpdateTasks, "getDayTasks");
-
-// Set tasks listeners for the task list in the NavBar
-observe("confirmTask", UpdateNavBar, "getCurrentDay");
-observe("addTask", UpdateNavBar, "getCurrentDay");
-observe("deleteTask", UpdateNavBar, "getCurrentDay");

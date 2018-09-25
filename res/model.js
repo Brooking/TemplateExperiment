@@ -7,6 +7,7 @@ class Model {
     this.days = load();
     this.reorder();
     this.checkConflicts();
+    this.currentDay;
   }
 
   reorder() {
@@ -49,7 +50,11 @@ class Model {
     this.reorder();
     this.checkConflicts();
   }
-  setCurrentDay(day) { this.currentDay = day; }
+  setCurrentDay(day) {
+    if (this.currentDay) this.currentDay.current = false;
+    day.current = true;
+    this.currentDay = day;
+  }
   getCurrentDay() { return this.currentDay; }
 }
 export default Model;

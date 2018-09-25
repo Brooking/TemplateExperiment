@@ -4,6 +4,7 @@ import { dayOfWeekShort, dayOfWeek } from '../res/helper.js';
 controller.prototype.dayShort = day => dayOfWeekShort(day.getDay());
 controller.prototype.dayWeek = day => dayOfWeek(day.getDay());
 controller.prototype.conflict = (conflict) => conflict ? "conflict" : "";
+controller.prototype.active = (active) => active ? "active" : "";
 
 angular.module('CalendarApp', [])
   .controller('CalendarController', controller);

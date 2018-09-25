@@ -30,10 +30,6 @@ h1 {
   text-align: center;
 }
 
-.navBar li.active {
-  background-color: #1982E0;
-}
-
 table {
   border-collapse: collapse;
 }
@@ -76,8 +72,16 @@ td {
   background-color: #4697DF;
 }
 
-td.conflict, .tasks li.conflict{
+tbody td.active {
+  background-color: #4697DF;
+}
+
+.navBar td.conflict, tbody td.conflict, .tasks li.conflict{
   background-color: #FFB142;
+}
+
+.navBar td.active {
+  background-color: #1982E0;
 }
 
 .tasks li div{
