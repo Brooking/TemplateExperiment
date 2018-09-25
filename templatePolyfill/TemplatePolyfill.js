@@ -24,18 +24,18 @@ class TemplateInstance {
     // remove any internal templates, but keep track of where they go
     this._internalTemplates = [];
     for (const templateNode of parser.internalTemplateNodes) {
-      let processor = templateNode.getAttribute('processor');
-      if ( processor == 'for-each' || processor == 'if') {
+      let directive = templateNode.getAttribute('directive');
+      if ( directive == 'for-each' || directive == 'if') {
         let placeholder = new Text("");
         templateNode.parentElement.replaceChild(placeholder, templateNode);
         this._internalTemplates.push({templateNode: templateNode,
-                                     type: processor,
+                                     type: directive,
                                      firstNode: null,
                                      placeholder: placeholder});
         } else {
             window.alert(
               "The only type of embedded templates we know are " +
-              "'for-each' and 'if' not '" + processor + "'");
+              "'for-each' and 'if' not '" + directive + "'");
       }
     }
   }
@@ -116,7 +116,31 @@ class TemplateInstance {
 
   static defaultPartProcessor(parts, params) {
     for (const part of parts) {
-      part.replaceWith(params[part.expression]);
+      let property = false;
+      let expression = part.expression;
+      if (expression.substring(0,1) == '$') {
+        // {{$xxx}} implies a property request
+        property = true;
+        expression = expression.substring(1);
+      }
+
+      let replacement;
+      if (expression == "") {
+        // use 'this'
+        replacement = params;
+      } else {
+        // use 'this.expression'
+        replacement = params[expression];
+      }
+
+      if (property) {
+        // remove the attribute and add a property
+        part.node.removeAttribute(part.attributeName);
+        part.node[part.attributeName] = replacement;
+      } else {
+        // replace the property
+        part.replaceWith(replacement);
+      }
     }
   }
 
@@ -176,6 +200,10 @@ class TemplatePart {
     return this._expression;
   }
 
+  get node() {
+    return this._node;
+  }
+
 }
 
 //
@@ -187,7 +215,7 @@ class AttributeTemplatePart extends TemplatePart {
     this._attributeName = attributeName;
   }
 
-  get attribute() {
+  get attributeName() {
     return this._attributeName;
   }
 

@@ -19,7 +19,7 @@ function NavBar(data) {
   clearChildren(navHead);
   data.forEach(day => {
     // Set day
-    var navDay = document.querySelector('#navBarDay').content.cloneNode(true);
+    var navDay = document.querySelector('#navBarDayTemplate').content.cloneNode(true);
 
     navDay.querySelector('a').append(
       dayOfWeekShort(day.date.getDay()) + " " +
@@ -32,10 +32,10 @@ function NavBar(data) {
     navHead.append(navDay);
 
     // Tasks preview
-    var taskList = document.querySelector('#navBarDayTasks').content.cloneNode(true);
+    var taskList = document.querySelector('#navBarDayTasksTemplate').content.cloneNode(true);
     var navDayUL = taskList.querySelector('.navTasks');
     day.tasks.forEach(task => {
-      var taskItem = document.querySelector('#navBarDayTask').content.cloneNode(true);
+      var taskItem = document.querySelector('#navBarDayTaskTemplate').content.cloneNode(true);
       taskItem.querySelector('li').append(task.title);
       navDayUL.append(taskItem);
     });
@@ -61,7 +61,7 @@ function UpdateNavBar(day) {
   var taskList = document.querySelector('tbody td:nth-child(' + (day.date.getDay() + 1) + ') .navTasks');
   clearChildren(taskList);
   day.tasks.forEach(task => {
-    var taskItem = document.querySelector('#navBarDayTask').content.cloneNode(true);
+    var taskItem = document.querySelector('#navBarDayTaskTemplate').content.cloneNode(true);
     taskItem.querySelector('li').append(task.title);
     taskList.append(taskItem);
   });
@@ -74,7 +74,7 @@ function UpdateNavBar(day) {
 
 // Task Creation
 function Task(task, list) {
-  var taskItem = document.querySelector('#taskItem').content.cloneNode(true);
+  var taskItem = document.querySelector('#taskItemTemplate').content.cloneNode(true);
 
   if (task.conflict) taskItem.querySelector('li').setAttribute("class", "conflict");
 
@@ -131,7 +131,7 @@ function Task(task, list) {
 
 // Inputs for new task
 function TaskInput(list) {
-  var taskInputs = document.querySelector('#taskInputs').content.cloneNode(true);
+  var taskInputs = document.querySelector('#taskInputsTemplate').content.cloneNode(true);
   var add = taskInputs.querySelector('.taskAdd input');
   var task = taskInputs.querySelector('li');
   task.querySelector(".taskTime input").value = "12:00";

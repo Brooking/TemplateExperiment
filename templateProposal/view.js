@@ -1,4 +1,4 @@
-import { notify, observe, flush } from './controller.js';
+import { notify, observe, process } from './controller.js';
 import { dayOfWeekShort, dayOfWeek } from '../res/helper.js';
 
 Notify = notify; // Declared in index.html
@@ -96,13 +96,20 @@ function localDefaultPartProcessor(parts, state) {
   }
 }
 
-observe("", NavBar, "getData");
-flush()
-observe("setCurrentDay", DayTab, "getCurrentDay");
-observe("editTask", DayTab, "getCurrentDay");
-observe("addTask", DayTab, "getCurrentDay");
-observe("removeTask", DayTab, "getCurrentDay");
-observe("editTask", NavBar, "getData");
+// Set the initial NavBar
+process(NavBar, "getData");
+
+// Set tasks listeners for the task list in the NavBar
+observe("confirmTask", NavBar, "getData");
 observe("addTask", NavBar, "getData");
-observe("removeTask", NavBar, "getData");
+observe("deleteTask", NavBar, "getData");
+
+// Set listener for current day change
+observe("setCurrentDay", DayTab, "getCurrentDay");
+
+// Set tasks listeners for the task list in the day tab
+observe("editingTask", DayTab, "getCurrentDay");
+observe("confirmTask", DayTab, "getCurrentDay");
+observe("addTask", DayTab, "getCurrentDay");
+observe("deleteTask", DayTab, "getCurrentDay");
 
