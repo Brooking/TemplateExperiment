@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="../res/style.css">
   <script>
     var Notify; // Defined in view.js
+    var onConfirm; // Defined in view.js
   </script>
   <script type="text/javascript" src="../templatePolyFill/TemplatePolyfill.js"></script>
   <script type="module" src="view.js"></script>
@@ -49,28 +50,44 @@
           <ul class="tasks">
             <template id="taskItem" directive="for-each" items="{{tasks}}">
               <li class="task {{conflict?}}">
-                <ul class="row">
-                  <li class="taskTime">
-                    <span {{hideifediting?}}>{{time}}</span>
-                    <input type="{{timeType}}" value="{{time}}" {{showifediting?}}/>
-                  </li>
-                  <li class="taskTitle">
-                    <span {{hideifediting?}}>{{title}}</span>
-                    <input type="input" value="{{title}}" {{showifediting?}}/>
-                  </li>
-                  <li class="taskEdit">
-                    <input task={{$}} type="button" value="Edit" {{hideifediting?}} onclick="Notify('editingTask', this.task);"/>
-                    <input task={{$}} type="button" value="Confirm" {{showifediting?}} onclick="Notify('confirmTask', this.task);"/>
-                  </li>
-                  <li class="taskDelete">
-                    <input task={{$}} type="button" value="Delete" onclick="Notify('deleteTask', this.task);"/>
-                  </li>
-                </ul>
-                <div>
-                  <span {{hideifediting?}}>{{description}}</span>
-                  <textarea textContent="{{description}}" {{showifediting?}}>
-                  </textarea>
-                </div>
+                <template id="taskItemNotEditing" directive="if" expression="{{editing}} == false">
+                  <ul class="row">
+                    <li class="taskTime">
+                      <span >{{time?}}</span>
+                    </li>
+                    <li class="taskTitle">
+                      <span >{{title}}</span>
+                    </li>
+                    <li class="taskEdit">
+                      <input task={{$}} type="button" value="Edit" onclick="Notify('editingTask', this.task);"/>
+                    </li>
+                    <li class="taskDelete">
+                      <input task={{$}} type="button" value="Delete" onclick="Notify('deleteTask', this.task);"/>
+                    </li>
+                  </ul>
+                  <div>
+                    <span>{{description}}</span>
+                  </div>
+                </template>
+                <template id="taskItemEditing" directive="if" expression="{{editing}} != false">
+                  <ul class="row">
+                    <li class="taskTime">
+                      <input type="{{timeType}}" value="{{time?}}"/>
+                    </li>
+                    <li class="taskTitle">
+                      <input type="input" value="{{title}}"/>
+                    </li>
+                    <li class="taskEdit">
+                      <input task={{$}} type="button" value="Confirm" onclick="onConfirm(this, this.task);"/>
+                    </li>
+                    <li class="taskDelete">
+                      <input task={{$}} type="button" value="Delete" onclick="Notify('deleteTask', this.task);"/>
+                    </li>
+                  </ul>
+                  <div>
+                    <textarea>{{description}}</textarea>
+                  </div>
+                </template>
               </li>
             </template>
             <li class="task">

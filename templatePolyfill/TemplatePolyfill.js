@@ -89,7 +89,7 @@ class TemplateInstance {
           let documentFragment = document.importNode(templateNode.content,
             true/*deep*/);
           let newTemplateInstance = new TemplateInstance(documentFragment);
-          newTemplateInstance.update(partProcessor, params); // TODO: what is the proper params for this update
+          newTemplateInstance.update(partProcessor, params);
           placeholder.parentNode.insertBefore(
               newTemplateInstance.documentFragment,
               placeholder);

@@ -29,9 +29,8 @@ function DayTab(data) {
 // nav bar parts processor override
 function NavBarPartsProcessor(parts, state) {
   localDefaultPartProcessor(parts, state);
-  for (let i = 0; i < parts.length; i++) {
-    let part = parts[i];
 
+  for (const part of parts) {
     // Hack: format date on nav bar
     if (part.expression == "date?") {
       part.replaceWith( dayOfWeekShort(state.date.getDay()) + " " +
@@ -41,39 +40,31 @@ function NavBarPartsProcessor(parts, state) {
 }
 
 // day tab parts processor override
-function DayTabPartsProcessor(parts, day) {
-  localDefaultPartProcessor(parts, day);
-  for (let i = 0; i < parts.length; i++) {
-    let part = parts[i];
+function DayTabPartsProcessor(parts, state) {
+  localDefaultPartProcessor(parts, state);
 
-    // Hack: simplify full date to just "WED"
+  for (const part of parts) {
+    // Hack: simplify full date to just "Wednesday"
+    // (state is a day)
     if (part.expression == "date?") {
-      part.replaceWith(dayOfWeek(day.date.getDay()));
+      part.replaceWith(dayOfWeek(state.date.getDay()));
     }
 
-    // Hack: parser rejects input with type=time and value="{{x}}"
+    // Hack: parser rejects input with type="time" and value="{{x}}"
+    // So we fill in the type after the parser has run
     if (part.expression == "timeType") {
       part.replaceWith("time");
     }
 
-    // Hack: adding or deleting a full attribute ("hidden")
-    if (part.expression == "hideifediting?") {
-      if (day.editing) {
-        part._node.setAttribute("hidden", "");
-      } else {
-        part._node.removeAttribute("hidden");
+    // Hack: need to format time as HH:MM
+    // (state is a task)
+    if (part.expression == "time?") {
+      let hours = state.time.getHours();
+      let minutes = state.time.getMinutes();
+      if (minutes < 10) {
+        minutes = "0" + minutes;
       }
-      part.replaceWith("");
-    }
-
-    // Hack: adding or deleting a full attribute ("hidden")
-    if (part.expression == "showifediting?") {
-      if (day.editing) {
-        part._node.removeAttribute("hidden");
-      } else {
-        part._node.setAttribute("hidden", "");
-      }
-      part.replaceWith("");
+      part.replaceWith(hours + ":" + minutes);
     }
   }
 }
@@ -82,9 +73,7 @@ function DayTabPartsProcessor(parts, day) {
 function localDefaultPartProcessor(parts, state) {
   TemplateInstance.defaultPartProcessor(parts, state);
 
-  for (let i = 0; i < parts.length; i++) {
-    let part = parts[i];
-
+  for (const part of parts) {
     // Hack: map (state.conflict == true) to "conflict"
     if (part.expression == "conflict?") {
       if (state.conflict) {
@@ -94,6 +83,19 @@ function localDefaultPartProcessor(parts, state) {
       }
     }
   }
+}
+
+onConfirm = function(control, task) {
+  let taskContainer = control.parentNode.parentNode.parentNode;
+  let timeControl = taskContainer.querySelector('.taskTime').querySelector('input');
+  let titleControl = taskContainer.querySelector('.taskTitle').querySelector('input');
+  let descriptionControl = taskContainer.querySelector('div textarea');
+
+  task.time = new Date('1970-01-01T' + timeControl.value + ":00");
+  task.title = titleControl.value;
+  task.description = descriptionControl.value;
+  task.editing = false;
+  Notify('confirmTask', task);
 }
 
 // Set the initial NavBar
