@@ -18,19 +18,19 @@
     <template id="weekdaysNavBar">
         <table>
           <thead class="navBar">
-            <template id="dayNavBar" processor="for-each" items="{{}}">
+            <template id="dayNavBar" directive="for-each" items="{{}}">
               <td class="{{conflict?}}">
-                <a onclick="Notify('setCurrentDay', '{{date}}');">
+                <a day={{$}} onclick="Notify('setCurrentDay', this.day);">
                   {{date?}}
                 </a>
                 </td>
             </template>
           </thead>
           <tbody>
-            <template id="dayNavTasks" processor="for-each" items="{{}}">
+            <template id="dayNavTasks" directive="for-each" items="{{}}">
               <td class="{{conflict?}}">
                 <ul class="navTasks">
-                  <template id="dayTask" processor="for-each" items="{{tasks}}">
+                  <template id="dayTask" directive="for-each" items="{{tasks}}">
                     <li>
                       {{title}}
                     </li>
@@ -47,7 +47,7 @@
             {{date?}}
           </h1>
           <ul class="tasks">
-            <template id="taskItem" processor="for-each" items="{{tasks}}">
+            <template id="taskItem" directive="for-each" items="{{tasks}}">
               <li class="task {{conflict?}}">
                 <ul class="row">
                   <li class="taskTime">
@@ -59,11 +59,11 @@
                     <input type="input" value="{{title}}" {{showifediting?}}/>
                   </li>
                   <li class="taskEdit">
-                    <input type="button" value="Edit" {{hideifediting?}}/>
-                    <input type="button" value="Confirm" {{showifediting?}}/>
+                    <input task={{$}} type="button" value="Edit" {{hideifediting?}} onclick="Notify('editingTask', this.task);"/>
+                    <input task={{$}} type="button" value="Confirm" {{showifediting?}} onclick="Notify('confirmTask', this.task);"/>
                   </li>
                   <li class="taskDelete">
-                    <input type="button" value="Delete"/>
+                    <input task={{$}} type="button" value="Delete" onclick="Notify('deleteTask', this.task);"/>
                   </li>
                 </ul>
                 <div>
@@ -82,7 +82,7 @@
                   <input type="input" placeholder="Add a new task"/>
                 </li>
                 <li>
-                  <input type="button" value="Add"/>
+                  <input type="button" value="Add" onclick="Notify('addTask');"/>
                 </li>
               </ul>
               <div>
