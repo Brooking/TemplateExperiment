@@ -1,10 +1,9 @@
-// This will become HTMLTemplateElement.instantiate()
+// This will become HTMLTemplateElement.instantiate(3 params)
 function HTMLTemplateElement_instantiate(thisTemplateElement, partProcessor,
                                          params) {
   // instantiate the template
-  let documentFragment = document.importNode(thisTemplateElement.content,
-                                             true/*deep*/);
-  let templateInstance = new TemplateInstance(documentFragment);
+  let partedTemplate = HTMLTemplateElement_findParts(thisTemplateElement);
+  let templateInstance = new TemplateInstance(partedTemplate);
 
   // stamp the template instance
   templateInstance.update(partProcessor, params);
@@ -15,33 +14,55 @@ function HTMLTemplateElement_instantiate(thisTemplateElement, partProcessor,
 // TemplateInstance class
 //
 class TemplateInstance {
-  constructor(documentFragment) {
-    this._documentFragment = documentFragment;
-
-    let parser = new PartParser(this);
-    this._partArray = parser.parts;
+  constructor(partedTemplate) {
+    this._partedTemplate = partedTemplate;
+    this._internalTemplates = [];
+    this._partArray = []
 
     // remove any internal templates, but keep track of where they go
-    this._internalTemplates = [];
-    for (const templateNode of parser.internalTemplateNodes) {
-      let directive = templateNode.getAttribute('directive');
-      if ( directive == 'for-each' || directive == 'if') {
-        let placeholder = new Text("");
-        templateNode.parentNode.replaceChild(placeholder, templateNode);
-        this._internalTemplates.push({templateNode: templateNode,
-                                     type: directive,
-                                     firstNode: null,
-                                     placeholder: placeholder});
+    for (const partLocation of partedTemplate.partLocations) {
+      if (partLocation instanceof TemplatePartLocation) {
+        let templateNode = partLocation.node;
+        let directive = templateNode.getAttribute('directive');
+        if ( directive == 'for-each' || directive == 'if') {
+          let placeholder = new Text("");
+          templateNode.parentNode.replaceChild(placeholder, templateNode);
+          this._internalTemplates.push({templateNode: templateNode,
+                                      type: directive,
+                                      firstNode: null,
+                                      placeholder: placeholder});
         } else {
             window.alert(
               "The only type of embedded templates we know are " +
               "'for-each' and 'if' not '" + directive + "'");
+        }
+      } else {
+        let part;
+        if (partLocation instanceof AttributePartLocation) {
+          part = new AttributeTemplatePart(this, partLocation.expression,
+                                           partLocation.node,
+                                           partLocation.attributeName,
+                                           partLocation.start,
+                                           partLocation.end);
+        } else if (partLocation instanceof WholeAttributePartLocation) {
+          part = new WholeAttributeTemplatePart(this, partLocation.expression,
+                                                partLocation.node);
+        } else if (partLocation instanceof NodePartLocation) {
+          part = new NodeTemplatePart(this, partLocation.expression,
+                                      partLocation.node,
+                                      partLocation.start,
+                                      partLocation.end);
+        } else {
+          window.alert("unknown partLocation type");
+        }
+
+        this._partArray.push(part);
       }
     }
   }
 
   get documentFragment() {
-    return this._documentFragment;
+    return this._partedTemplate._documentFragment;
   }
 
   update(partProcessor, params) {
@@ -86,10 +107,10 @@ class TemplateInstance {
 
         // evaluate the expression
         if (eval(expression) == true) {
-          let documentFragment = document.importNode(templateNode.content,
-            true/*deep*/);
-          let newTemplateInstance = new TemplateInstance(documentFragment);
-          newTemplateInstance.update(partProcessor, params);
+          let newTemplateInstance = HTMLTemplateElement_instantiate(
+              templateNode,
+              partProcessor,
+              params);
           placeholder.parentNode.insertBefore(
               newTemplateInstance.documentFragment,
               placeholder);
@@ -111,10 +132,10 @@ class TemplateInstance {
         }
 
         for (const item of items) {
-          let documentFragment = document.importNode(templateNode.content,
-                                                    true/*deep*/);
-          let newTemplateInstance = new TemplateInstance(documentFragment);
-          newTemplateInstance.update(partProcessor, item);
+          let newTemplateInstance = HTMLTemplateElement_instantiate(
+            templateNode,
+            partProcessor,
+            item);
           placeholder.parentNode.insertBefore(
               newTemplateInstance.documentFragment,
               placeholder);
@@ -340,107 +361,3 @@ class NodeTemplatePart extends TemplatePart {
   }
 }
 
-//
-// PartParser class
-//
-class PartParser {
-  constructor(templateInstance) {
-    this._templateInstance = templateInstance;
-    this._partArray = [];
-    this._internalTemplateNodeArray = [];
-
-    this._findPartsInFragment(templateInstance.documentFragment);
-  }
-
-  get parts() {
-    return this._partArray;
-  }
-
-  get internalTemplateNodes() {
-    return this._internalTemplateNodeArray;
-  }
-
-  _findPartsInFragment(documentFragment) {
-    for (let child = documentFragment.firstChild;
-         child != null;
-         child = child.nextSibling) {
-      this._findPartsInTree(child);
-    }
-  }
-
-  _findPartsInTree(root) {
-    let walker = document.createTreeWalker(
-      root,
-      NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
-    let node = walker.currentNode;
-    while (node) {
-      if (node.nodeType == Node.ELEMENT_NODE) {
-        if (node.tagName == "TEMPLATE") {
-          this._internalTemplateNodeArray.push(node);
-          node = walker.nextSibling();
-        } else {
-          this._findPartsInElementNode(node);
-          node = walker.nextNode();
-        }
-      } else if (node.nodeType == Node.TEXT_NODE) {
-        this._findPartsInTextNode(node);
-        node = walker.nextNode();
-      } else {
-        window.alert("_findPartsInTree ran across a " + node.nodeType);
-      }
-    };
-  }
-
-  _findPartsInElementNode(elementNode) {
-    let attributeNames = elementNode.getAttributeNames();
-    for (const attributeName of attributeNames) {
-      let part = PartParser._findNextPart(attributeName);
-      if (part != null) {
-        // this is a whole attribute part
-        this._partArray.push(
-            new WholeAttributeTemplatePart(this._templateInstance, part.id,
-                                           elementNode));
-      } else {
-        let attributeValue = elementNode.getAttribute(attributeName);
-        let part = PartParser._findNextPart(attributeValue);
-        while (part != null) {
-          this._partArray.push(
-            new AttributeTemplatePart(this._templateInstance, part.id,
-              elementNode, attributeName, part.start, part.end));
-          part = PartParser._findNextPart(attributeValue, part.end);
-        }
-      }
-    }
-  }
-
-  _findPartsInTextNode(textNode) {
-    let text = textNode.textContent;
-    let part = PartParser._findNextPart(text);
-    while (part != null) {
-      this._partArray.push(
-        new NodeTemplatePart(this._templateInstance, part.id, textNode,
-            part.start, part.end));
-      part = PartParser._findNextPart(text, part.end);
-    }
-  }
-
-  // returns the gap before the starting {{ and the gap after the ending }}
-  // {start:#, end:#, id:string}
-  static _findNextPart(string, base = 0) {
-    let beforeOpenTagOffsetFromBase = string.substring(base).search("{{");
-    if (beforeOpenTagOffsetFromBase != -1) {
-      let beforeCloseTagOffsetFromBase = string.substring(base).search("}}");
-      if (beforeCloseTagOffsetFromBase != -1) {
-        return {
-          start: beforeOpenTagOffsetFromBase + base,
-          end: beforeCloseTagOffsetFromBase + base + 2,
-          id: string.substring(
-            beforeOpenTagOffsetFromBase + base + 2,
-            beforeCloseTagOffsetFromBase + base
-          )
-        };
-      }
-    }
-    return null;
-  }
-}

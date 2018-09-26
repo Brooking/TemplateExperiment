@@ -33,8 +33,18 @@ function NavBarPartsProcessor(parts, state) {
   for (const part of parts) {
     // Hack: format date on nav bar
     if (part.expression == "date?") {
-      part.replaceWith( dayOfWeekShort(state.date.getDay()) + " " +
-      (state.date.getMonth() + 1) + "/" + (state.date.getDate()))
+      part.replaceWith(dayOfWeekShort(state.date.getDay()) + " " +
+                       (state.date.getMonth() + 1) + "/" +
+                       (state.date.getDate()))
+    }
+
+    // Hack: color the current day
+    if (part.expression == "current?") {
+      if (part.node.day.current) {
+        part.replaceWith("active");
+      } else {
+        part.replaceWith("");
+      }
     }
   }
 }
@@ -108,6 +118,7 @@ observe("deleteTask", NavBar, "getData");
 
 // Set listener for current day change
 observe("setCurrentDay", DayTab, "getCurrentDay");
+observe("setCurrentDay", NavBar, "getData");
 
 // Set tasks listeners for the task list in the day tab
 observe("editingTask", DayTab, "getCurrentDay");

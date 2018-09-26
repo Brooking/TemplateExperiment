@@ -11,7 +11,9 @@
     var Notify; // Defined in view.js
     var onConfirm; // Defined in view.js
   </script>
-  <script type="text/javascript" src="../templatePolyFill/TemplatePolyfill.js"></script>
+  <!-- <script type="text/javascript" src="../templatePolyFill/TemplatePolyfill.js"></script> -->
+  <script type="text/javascript" src="../partsPolyfill/PartsPolyfill.js"></script>
+  <script type="text/javascript" src="../partsPolyfill/TemplatePolyfill.js"></script>
   <script type="module" src="view.js"></script>
 </head>
 
@@ -20,7 +22,7 @@
         <table>
           <thead class="navBar">
             <template id="dayNavBar" directive="for-each" items="{{}}">
-              <td class="{{conflict?}}">
+              <td day={{$}} class="{{conflict?}} {{current?}}">
                 <a day={{$}} onclick="Notify('setCurrentDay', this.day);">
                   {{date?}}
                 </a>
@@ -29,7 +31,7 @@
           </thead>
           <tbody>
             <template id="dayNavTasks" directive="for-each" items="{{}}">
-              <td class="{{conflict?}}">
+              <td day={{$}} class="{{conflict?}} {{current?}}">
                 <ul class="navTasks">
                   <template id="dayTask" directive="for-each" items="{{tasks}}">
                     <li>
